@@ -1,2 +1,2 @@
-# BayesianNeuralNetworks
-Bayesian Neural Networks
+# Bayesian Neural Networks
+
