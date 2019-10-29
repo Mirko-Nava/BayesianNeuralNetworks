@@ -4,73 +4,113 @@ from torchsummary import summary
 from types import SimpleNamespace
 
 
-def loglike(x, mu, sigma):
-    # isotropicc_gauss_loglike
-    return -(torch.log(sigma) + .5 * (((x - mu) / sigma) ** 2)).mean()
+def log_gaussians(x, mu, sigma):
+    return -math.log(math.sqrt(2 * math.pi)) - torch.log(sigma) - ((x - mu) ** 2) / (2 * sigma ** 2)
+
+
+class ELBOLoss(torch.nn.Module):
+    def __init__(self, number_of_batches):
+        super(ELBOLoss, self).__init__()
+        self.number_of_batches = number_of_batches
+
+    def _elbo(self, prediction, target, w, prior):
+        log_likelihood = torch.nn.functional.cross_entropy(prediction, target)
+        log_prior = log_gaussians(w.sampled, prior.mean, prior.stddev).mean()
+        log_posterior = log_gaussians(w.sampled, w.mu, w.sigma).mean()
+
+        return (1 / self.number_of_batches) * (log_posterior - log_prior) - log_likelihood
+
+    def forward(self, prediction, target, model):
+        result = 0
+        num_layers = 0
+        for layer in model.layers:
+            if isinstance(layer, BayesianLinear):
+                W = layer.W
+                b = layer.b
+                prior = layer.prior
+
+                result += self._elbo(prediction, target, W, prior)
+                result += self._elbo(prediction, target, b, prior)
+
+                num_layers += 1
+
+        return result / num_layers
 
 
 class NormalWeight(torch.nn.Module):
+
     def __init__(self, *channels):
         super(NormalWeight, self).__init__()
 
         self.mu = torch.nn.Parameter(
-            torch.Tensor(*channels).uniform_(-0.1, 0.1))
+            torch.empty(*channels, requires_grad=True))
+        torch.nn.init.uniform_(self.mu, -0.2, 0.2)
 
-        self.rho = torch.nn.Parameter(torch.Tensor(*channels).uniform_(-3, 0))
+        self.rho = torch.nn.Parameter(
+            torch.empty(*channels, requires_grad=True))
+        torch.nn.init.uniform_(self.rho, -3, 0)
+
+        self.sample()
 
     @property
-    def std(self):
+    def sigma(self):
+        # note perhaphs this one is better
         # return 1 + torch.nn.functional.elu(self.rho)
         return 1e-6 + torch.nn.functional.softplus(self.rho)
 
-    def forward(self):
-        eps = torch.randn_like(self.mu)
-        return self.mu + self.std * eps
+    def sample(self):
+        self.sampled = self.mu + self.sigma * torch.randn_like(self.mu)
 
 
 class BayesianLinear(torch.nn.Module):
-    def __init__(self, in_channels, out_channels, prior=torch.distributions.normal.Normal(0, 0.1)):
+    prior_types = ['gaussian']
+
+    def __init__(self, in_channels, out_channels, **kwargs):
         super(BayesianLinear, self).__init__()
 
         self.W = NormalWeight(out_channels, in_channels)
         self.b = NormalWeight(out_channels)
-        self.prior = prior
 
-    def forward(self, x, lqw=0, lpw=0):
-        W = self.W()
-        b = self.b()
+        if 'prior' not in kwargs:
+            self.prior = torch.distributions.normal.Normal(0, 0.1)
+        elif kwargs['prior'] == 'gaussian':
+            self.prior = torch.distributions.normal.Normal(
+                kwargs['mean'], kwargs['std'])
+        else:
+            raise ValueError(
+                f'Invalid prior type passed ({prior}), expected one of {prior_types}')
 
-        lqw += loglike(W, self.W.mu, self.W.std)
-        lqw += loglike(b, self.b.mu, self.b.std)
-        lpw += loglike(W, self.prior.mean, self.prior.stddev)
-        lpw += loglike(b, self.prior.mean, self.prior.stddev)
-        result = torch.nn.functional.linear(x, W, b)
+    @property
+    def sampled(self):
+        return self.W.sampled, self.b.sampled
 
-        return result, lqw, lpw
+    def sample(self):
+        self.W.sample()
+        self.b.sample()
+
+    def forward(self, x):
+        self.sample()
+        return torch.nn.functional.linear(x, *self.sampled)
 
 
 class BayesianNeuralNetwork(torch.nn.Module):
     def __init__(self, in_channels, out_channels):
         super(BayesianNeuralNetwork, self).__init__()
 
-        self.layers = torch.nn.ModuleList([
-            BayesianLinear(in_channels, 256),
-            BayesianLinear(256, 256),
-            BayesianLinear(256, out_channels)
-        ])
+        self.layers = torch.nn.Sequential(
+            BayesianLinear(in_channels, 1024),
+            torch.nn.ReLU(),
+            BayesianLinear(1024, out_channels),
+            torch.nn.Softmax()
+        )
 
     def summary(self, *args, **kwargs):
         summary(self, *args, **kwargs)
 
     def forward(self, x):
-        out = (x,)
-        for layer in self.layers:
-            out = layer(*out)
-
-        return out
+        return self.layers(x)
 
 
 if __name__ == "__main__":
     model = BayesianNeuralNetwork(784, 10)
-    # summary(model, (784,), device='cpu')
-    # todo summary not working
+    summary(model, (784,), device='cpu')
