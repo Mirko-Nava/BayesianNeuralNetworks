@@ -6,12 +6,14 @@ import torch.optim as optim
 from nn import NeuralNetwork
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
-from bnn import BayesianNeuralNetwork
+from bnn import BayesianNeuralNetwork, SomeLoss
 from torchvision import datasets, transforms
 
 
 def train(args, model, device, train_loader, loss_function, optimizer, epoch):
     model.train()
+    n_batches = len(train_loader.dataset) / args.batch_size
+    some_loss = SomeLoss(n_batches)
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
         data = data.view(data.shape[0], -1)
@@ -23,7 +25,8 @@ def train(args, model, device, train_loader, loss_function, optimizer, epoch):
         for _ in range(args.samples):
             prediction = model(data)
             std += [prediction.detach().cpu().numpy().argmax(axis=1)]
-            loss += loss_function(prediction, target)  # , model)
+            loss += loss_function(prediction, target)
+            loss += some_loss(model)
 
         std = np.array(std).std(axis=0).mean()
 
@@ -128,12 +131,13 @@ def main():
 
 def plot_preds(im, model):
     preds = [model(im.view(784)).detach().numpy()
-             for _ in range(100)]
+             for _ in range(50)]
     plt.subplot(1, 2, 1)
     plt.imshow(np.transpose(im, [1, 2, 0])[:, :, 0], )
     plt.subplot(1, 2, 2)
-    plt.hist(np.argmax(preds, axis=1), bins=10)
+    plt.hist(np.argmax(preds, axis=1), bins=10, density=True)
     plt.ylim(0, 1)
+    plt.xlim(0, 9)
 
 
 if __name__ == '__main__':

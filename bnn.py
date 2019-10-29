@@ -6,6 +6,30 @@ from torch.distributions.exp_family import ExponentialFamily
 from torch.distributions.utils import _standard_normal
 
 
+class SomeLoss(torch.nn.Module):
+    def __init__(self, number_of_batches):
+        super(SomeLoss, self).__init__()
+        self.number_of_batches = number_of_batches
+
+    def _kl_normal_normal(self, p, q):
+        var_ratio = (p.stddev / q.stddev).pow(2)
+        t1 = ((p.mean - q.mean) / q.stddev).pow(2)
+        return (var_ratio + t1 - 1 - var_ratio.log()).mean() / self.number_of_batches
+
+    def forward(self, model):
+        result = 0
+        for layer in model.layers:
+            if isinstance(layer, BayesianLinear):
+                W = layer.W
+                b = layer.b
+                prior = layer.prior
+
+                result += self._kl_normal_normal(prior, W)
+                result += self._kl_normal_normal(prior, b)
+
+        return result / len(model.layers)
+
+
 class LearnableNormal(torch.nn.Module, ExponentialFamily):
     arg_constraints = {'loc': constraints.real, 'scale': constraints.real}
     support = constraints.real
@@ -77,20 +101,12 @@ class LearnableNormal(torch.nn.Module, ExponentialFamily):
 class BayesianLinear(torch.nn.Module):
     prior_types = ['gaussian']
 
-    def __init__(self, in_channels, out_channels, **kwargs):
+    def __init__(self, in_channels, out_channels):
         super(BayesianLinear, self).__init__()
 
         self.W = LearnableNormal(out_channels, in_channels)
         self.b = LearnableNormal(out_channels)
-
-        if 'prior' not in kwargs:
-            self.prior = torch.distributions.normal.Normal(0, 0.1)
-        elif kwargs['prior'] == 'gaussian':
-            self.prior = torch.distributions.normal.Normal(
-                kwargs['mean'], kwargs['std'])
-        else:
-            raise ValueError(
-                f'Invalid prior type passed ({prior}), expected one of {prior_types}')
+        self.prior = torch.distributions.normal.Normal(0, 0.1)
 
     @property
     def sampled(self):
@@ -110,9 +126,9 @@ class BayesianNeuralNetwork(torch.nn.Module):
         super(BayesianNeuralNetwork, self).__init__()
 
         self.layers = torch.nn.Sequential(
-            BayesianLinear(in_channels, 1024),
+            BayesianLinear(in_channels, 512),
             torch.nn.ReLU(),
-            BayesianLinear(1024, out_channels),
+            BayesianLinear(512, out_channels),
             torch.nn.Softmax()
         )
 
@@ -125,4 +141,3 @@ class BayesianNeuralNetwork(torch.nn.Module):
 
 if __name__ == "__main__":
     model = BayesianNeuralNetwork(784, 10)
-    summary(model, (784,), device='cpu')
