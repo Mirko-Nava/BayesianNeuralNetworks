@@ -1,0 +1,1 @@
+rm -rdf __pycache__ *.pyc

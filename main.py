@@ -6,7 +6,7 @@ import torch.optim as optim
 from nn import NeuralNetwork
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
-from bnn import BayesianNeuralNetwork, ELBOLoss
+from dist_bnn import BayesianNeuralNetwork
 from torchvision import datasets, transforms
 
 
@@ -106,9 +106,6 @@ def main():
     n_batches = len(train_loader.dataset) / args.batch_size
 
     model = BayesianNeuralNetwork(784, 10).to(device)
-    # loss_function = ELBOLoss(len(train_loader.dataset))
-
-    # model = NeuralNetwork(784, 10).to(device)
     loss_function = torch.nn.CrossEntropyLoss()
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
@@ -136,6 +133,7 @@ def plot_preds(im, model):
     plt.imshow(np.transpose(im, [1, 2, 0])[:, :, 0], )
     plt.subplot(1, 2, 2)
     plt.hist(np.argmax(preds, axis=1), bins=10)
+    plt.ylim(0, 1)
 
 
 if __name__ == '__main__':
