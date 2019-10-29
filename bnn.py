@@ -18,7 +18,7 @@ class ELBOLoss(torch.nn.Module):
         log_prior = log_gaussians(w.sampled, prior.mean, prior.stddev).mean()
         log_posterior = log_gaussians(w.sampled, w.mu, w.sigma).mean()
 
-        return (1 / self.number_of_batches) * (log_posterior - log_prior) - log_likelihood
+        return (1 / self.number_of_batches) * (log_posterior - log_prior) + log_likelihood
 
     def forward(self, prediction, target, model):
         result = 0
