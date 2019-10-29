@@ -6,7 +6,7 @@ import torch.optim as optim
 from nn import NeuralNetwork
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
-from dist_bnn import BayesianNeuralNetwork
+from bnn import BayesianNeuralNetwork
 from torchvision import datasets, transforms
 
 
