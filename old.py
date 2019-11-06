@@ -6,14 +6,14 @@ import torch.optim as optim
 from nn import NeuralNetwork
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
-from bnn import BayesianNeuralNetwork, SomeLoss
+from bnn import BayesianNeuralNetwork, KLDivergence
 from torchvision import datasets, transforms
 
 
 def train(args, model, device, train_loader, loss_function, optimizer, epoch):
     model.train()
     n_batches = len(train_loader.dataset) / args.batch_size
-    some_loss = SomeLoss(n_batches)
+    some_loss = KLDivergence(n_batches)
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
         data = data.view(data.shape[0], -1)

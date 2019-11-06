@@ -3,12 +3,11 @@ import torch
 from torchsummary import summary
 from torch.distributions import constraints
 from torch.distributions.exp_family import ExponentialFamily
-from torch.distributions.utils import _standard_normal
 
 
-class SomeLoss(torch.nn.Module):
+class KLDivergence(torch.nn.Module):
     def __init__(self, number_of_batches):
-        super(SomeLoss, self).__init__()
+        super(KLDivergence, self).__init__()
         self.number_of_batches = number_of_batches
 
     def _kl_normal_normal(self, p, q):
@@ -30,7 +29,7 @@ class SomeLoss(torch.nn.Module):
         return result / len(model.layers)
 
 
-class LearnableNormal(torch.nn.Module, ExponentialFamily):
+class LinearNormal(torch.nn.Module, ExponentialFamily):
     arg_constraints = {'loc': constraints.real, 'scale': constraints.real}
     support = constraints.real
     has_rsample = True
@@ -42,14 +41,14 @@ class LearnableNormal(torch.nn.Module, ExponentialFamily):
 
     @property
     def stddev(self):
-        return 1e-6 + torch.nn.functional.softplus(self.scale)
+        return 1e-5 + torch.nn.functional.softplus(self.scale)
 
     @property
     def variance(self):
         return self.stddev.pow(2)
 
     def __init__(self, *channels):
-        super(LearnableNormal, self).__init__()
+        super(LinearNormal, self).__init__()
 
         self.loc = torch.nn.Parameter(
             torch.empty(*channels, requires_grad=True))
@@ -61,19 +60,19 @@ class LearnableNormal(torch.nn.Module, ExponentialFamily):
 
         self.sample()
 
-    def sample(self, sample_shape=torch.Size()):
-        self.sampled = self.rsample()
+    def sample(self):
+        return self.rsample()
+
+    def rsample(self):
+        self.sampled = self.mean + self.stddev * torch.randn_like(self.mean)
         return self.sampled
 
-    def rsample(self, sample_shape=torch.Size()):
-        return self.mean + self.stddev * torch.randn_like(self.mean)
-
     # def expand(self, batch_shape, _instance=None):
-    #     new = self._get_checked_instance(LearnableNormal, _instance)
+    #     new = self._get_checked_instance(LinearNormal, _instance)
     #     batch_shape = torch.Size(batch_shape)
     #     new.loc = self.loc.expand(batch_shape)
     #     new.scale = self.scale.expand(batch_shape)
-    #     super(LearnableNormal, new).__init__(batch_shape, validate_args=False)
+    #     super(LinearNormal, new).__init__(batch_shape, validate_args=False)
     #     new._validate_args = self._validate_args
     #     return new
 
@@ -99,14 +98,13 @@ class LearnableNormal(torch.nn.Module, ExponentialFamily):
 
 
 class BayesianLinear(torch.nn.Module):
-    prior_types = ['gaussian']
 
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels, out_channels, mean=0, stddev=.1):
         super(BayesianLinear, self).__init__()
 
-        self.W = LearnableNormal(out_channels, in_channels)
-        self.b = LearnableNormal(out_channels)
-        self.prior = torch.distributions.normal.Normal(0, 0.1)
+        self.W = LinearNormal(out_channels, in_channels)
+        self.b = LinearNormal(out_channels)
+        self.prior = torch.distributions.normal.Normal(mean, stddev)
 
     @property
     def sampled(self):
@@ -122,6 +120,7 @@ class BayesianLinear(torch.nn.Module):
 
 
 class BayesianNeuralNetwork(torch.nn.Module):
+
     def __init__(self, in_channels, out_channels):
         super(BayesianNeuralNetwork, self).__init__()
 
