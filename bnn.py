@@ -52,7 +52,7 @@ class LinearNormal(torch.nn.Module, ExponentialFamily):
 
         self.loc = torch.nn.Parameter(
             torch.empty(*channels, requires_grad=True))
-        torch.nn.init.uniform_(self.loc, -.2, 0.2)
+        torch.nn.init.uniform_(self.loc, -.5, 0.5)
 
         self.scale = torch.nn.Parameter(
             torch.empty(*channels, requires_grad=True))
