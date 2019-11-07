@@ -52,11 +52,11 @@ class LinearNormal(torch.nn.Module, ExponentialFamily):
 
         self.loc = torch.nn.Parameter(
             torch.empty(*channels, requires_grad=True))
-        torch.nn.init.uniform_(self.loc, -0.2, 0.2)
+        torch.nn.init.uniform_(self.loc, -.2, 0.2)
 
         self.scale = torch.nn.Parameter(
             torch.empty(*channels, requires_grad=True))
-        torch.nn.init.uniform_(self.scale, -3, 0)
+        torch.nn.init.uniform_(self.scale, -2, 0)
 
         self.sample()
 
@@ -128,7 +128,7 @@ class BayesianNeuralNetwork(torch.nn.Module):
             BayesianLinear(in_channels, 512),
             torch.nn.ReLU(),
             BayesianLinear(512, out_channels),
-            torch.nn.Softmax()
+            torch.nn.Softmax(dim=-1)
         )
 
     def summary(self, *args, **kwargs):
