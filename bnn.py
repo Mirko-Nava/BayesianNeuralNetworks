@@ -5,6 +5,15 @@ from torch.distributions import constraints
 from torch.distributions.exp_family import ExponentialFamily
 
 
+class Flatten(torch.nn.Module):
+    def __init__(self):
+        super(Flatten, self).__init__()
+
+    def forward(self, x):
+        batchsize = x.shape[0]
+        return x.view(batchsize, -1)
+
+
 class KLDivergence(torch.nn.Module):
     def __init__(self, number_of_batches):
         super(KLDivergence, self).__init__()
@@ -126,6 +135,32 @@ class BayesianNeuralNetwork(torch.nn.Module):
 
         self.layers = torch.nn.Sequential(
             BayesianLinear(in_channels, 512),
+            torch.nn.ReLU(),
+            BayesianLinear(512, out_channels),
+            torch.nn.Softmax(dim=-1)
+        )
+
+    def summary(self, *args, **kwargs):
+        summary(self, *args, **kwargs)
+
+    def forward(self, x):
+        return self.layers(x)
+
+
+class BayesianConvolutionalNeuralNetwork(torch.nn.Module):
+
+    def __init__(self, in_channels, out_channels):
+        super(BayesianConvolutionalNeuralNetwork, self).__init__()
+
+        self.layers = torch.nn.Sequential(
+            torch.nn.Conv2d(in_channels=in_channels, out_channels=8,
+                            kernel_size=5, stride=2, padding=2),
+            torch.nn.ReLU(),
+            torch.nn.Conv2d(in_channels=8, out_channels=16,
+                            kernel_size=5, stride=2, padding=2),
+            torch.nn.ReLU(),
+            Flatten(),
+            BayesianLinear(784, 512),
             torch.nn.ReLU(),
             BayesianLinear(512, out_channels),
             torch.nn.Softmax(dim=-1)
