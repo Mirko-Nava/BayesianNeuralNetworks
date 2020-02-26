@@ -1,8 +1,6 @@
 import math
 import torch
 from torchsummary import summary
-from torch.distributions import constraints
-from torch.distributions.exp_family import ExponentialFamily
 
 
 class Flatten(torch.nn.Module):
@@ -27,9 +25,9 @@ class KLDivergence(torch.nn.Module):
     def forward(self, model):
         result = 0
         for layer in model.layers:
-            if isinstance(layer, BayesianLinear):
-                W = layer.W
-                b = layer.b
+            if isinstance(layer, BayesianLinearNormal):
+                W = layer.weight
+                b = layer.bias
                 prior = layer.prior
 
                 result += self._kl_normal_normal(prior, W)
@@ -38,56 +36,43 @@ class KLDivergence(torch.nn.Module):
         return result / len(model.layers)
 
 
-class LinearNormal(torch.nn.Module, ExponentialFamily):
-    arg_constraints = {'loc': constraints.real, 'scale': constraints.real}
-    support = constraints.real
-    has_rsample = True
-    _mean_carrier_measure = 0
+class LinearNormal(torch.nn.Module):
+
+    def __init__(self, *channels):
+        super(LinearNormal, self).__init__()
+
+        self.mean = torch.nn.Parameter(
+            torch.empty(*channels, requires_grad=True))
+        torch.nn.init.uniform_(self.mean, -1, 1)
+
+        self.scale = torch.nn.Parameter(
+            torch.empty(*channels, requires_grad=True))
+        torch.nn.init.normal_(self.scale, -2, 1)
+
+        self.sample()
+
+    def size(self):
+        return self.mean.size()
 
     @property
-    def mean(self):
-        return self.loc
+    def requires_grad(self):
+        return self.mean.requires_grad
 
     @property
     def stddev(self):
-        return 1e-5 + torch.nn.functional.softplus(self.scale)
+        return 1e-6 + torch.nn.functional.softplus(self.scale)
 
     @property
     def variance(self):
         return self.stddev.pow(2)
 
-    def __init__(self, *channels):
-        super(LinearNormal, self).__init__()
-
-        self.loc = torch.nn.Parameter(
-            torch.empty(*channels, requires_grad=True))
-        torch.nn.init.uniform_(self.loc, -.5, 0.5)
-
-        self.scale = torch.nn.Parameter(
-            torch.empty(*channels, requires_grad=True))
-        torch.nn.init.uniform_(self.scale, -2, 0)
-
-        self.sample()
-
     def sample(self):
-        return self.rsample()
-
-    def rsample(self):
         self.sampled = self.mean + self.stddev * torch.randn_like(self.mean)
         return self.sampled
 
-    # def expand(self, batch_shape, _instance=None):
-    #     new = self._get_checked_instance(LinearNormal, _instance)
-    #     batch_shape = torch.Size(batch_shape)
-    #     new.loc = self.loc.expand(batch_shape)
-    #     new.scale = self.scale.expand(batch_shape)
-    #     super(LinearNormal, new).__init__(batch_shape, validate_args=False)
-    #     new._validate_args = self._validate_args
-    #     return new
-
-    # def log_prob(self, value):
-    #     log_stddev = self.stddev.log()
-    #     return -((value - self.loc) ** 2) / (2 * self.variance) - log_stddev - math.log(math.sqrt(2 * math.pi))
+    def log_prob(self, value):
+        log_stddev = self.stddev.log()
+        return -((value - self.mean) ** 2) / (2 * self.variance) - log_stddev - math.log(math.sqrt(2 * math.pi))
 
     # def cdf(self, value):
     #     return 0.5 * (1 + torch.erf((value - self.mean) * self.stddev.reciprocal() / math.sqrt(2)))
@@ -106,22 +91,22 @@ class LinearNormal(torch.nn.Module, ExponentialFamily):
     #     return -0.25 * x.pow(2) / y + 0.5 * torch.log(-math.pi / y)
 
 
-class BayesianLinear(torch.nn.Module):
+class BayesianLinearNormal(torch.nn.Module):
 
-    def __init__(self, in_channels, out_channels, mean=0, stddev=.1):
-        super(BayesianLinear, self).__init__()
+    def __init__(self, in_channels, out_channels, prior=torch.distributions.normal.Normal(0, .1)):
+        super(BayesianLinearNormal, self).__init__()
 
-        self.W = LinearNormal(out_channels, in_channels)
-        self.b = LinearNormal(out_channels)
-        self.prior = torch.distributions.normal.Normal(mean, stddev)
+        self.weight = LinearNormal(out_channels, in_channels)
+        self.bias = LinearNormal(out_channels)
+        self.prior = prior
 
     @property
     def sampled(self):
-        return self.W.sampled, self.b.sampled
+        return self.weight.sampled, self.bias.sampled
 
     def sample(self):
-        self.W.sample()
-        self.b.sample()
+        self.weight.sample()
+        self.bias.sample()
 
     def forward(self, x):
         self.sample()
@@ -130,39 +115,13 @@ class BayesianLinear(torch.nn.Module):
 
 class BayesianNeuralNetwork(torch.nn.Module):
 
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels, out_channels, prior=torch.distributions.normal.Normal(0, .1)):
         super(BayesianNeuralNetwork, self).__init__()
 
         self.layers = torch.nn.Sequential(
-            BayesianLinear(in_channels, 512),
+            BayesianLinearNormal(in_channels, 512, prior=prior),
             torch.nn.ReLU(),
-            BayesianLinear(512, out_channels),
-            torch.nn.Softmax(dim=-1)
-        )
-
-    def summary(self, *args, **kwargs):
-        summary(self, *args, **kwargs)
-
-    def forward(self, x):
-        return self.layers(x)
-
-
-class BayesianConvolutionalNeuralNetwork(torch.nn.Module):
-
-    def __init__(self, in_channels, out_channels):
-        super(BayesianConvolutionalNeuralNetwork, self).__init__()
-
-        self.layers = torch.nn.Sequential(
-            torch.nn.Conv2d(in_channels=in_channels, out_channels=8,
-                            kernel_size=5, stride=2, padding=2),
-            torch.nn.ReLU(),
-            torch.nn.Conv2d(in_channels=8, out_channels=16,
-                            kernel_size=5, stride=2, padding=2),
-            torch.nn.ReLU(),
-            Flatten(),
-            BayesianLinear(784, 512),
-            torch.nn.ReLU(),
-            BayesianLinear(512, out_channels),
+            BayesianLinearNormal(512, out_channels, prior=prior),
             torch.nn.Softmax(dim=-1)
         )
 
@@ -174,4 +133,5 @@ class BayesianConvolutionalNeuralNetwork(torch.nn.Module):
 
 
 if __name__ == "__main__":
-    model = BayesianNeuralNetwork(784, 10)
+    model = BayesianNeuralNetwork(784, 10).to('cuda')
+    model.summary((1, 784))
