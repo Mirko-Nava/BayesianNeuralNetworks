@@ -36,10 +36,10 @@ class KLDivergence(torch.nn.Module):
         return result / len(model.layers)
 
 
-class LinearNormal(torch.nn.Module):
+class NormalWeight(torch.nn.Module):
 
     def __init__(self, *channels):
-        super(LinearNormal, self).__init__()
+        super(NormalWeight, self).__init__()
 
         self.mean = torch.nn.Parameter(
             torch.empty(*channels, requires_grad=True))
@@ -78,30 +78,14 @@ class LinearNormal(torch.nn.Module):
         log_stddev = self.stddev.log()
         return -((value - self.mean) ** 2) / (2 * self.variance) - log_stddev - math.log(math.sqrt(2 * math.pi))
 
-    # def cdf(self, value):
-    #     return 0.5 * (1 + torch.erf((value - self.mean) * self.stddev.reciprocal() / math.sqrt(2)))
-
-    # def icdf(self, value):
-    #     return self.mean + self.stddev * torch.erfinv(2 * value - 1) * math.sqrt(2)
-
-    # def entropy(self):
-    #     return 0.5 + 0.5 * math.log(2 * math.pi) + torch.log(self.stddev)
-
-    # @property
-    # def _natural_params(self):
-    #     return (self.mean / self.stddev.pow(2), -0.5 * self.stddev.pow(2).reciprocal())
-
-    # def _log_normalizer(self, x, y):
-    #     return -0.25 * x.pow(2) / y + 0.5 * torch.log(-math.pi / y)
-
 
 class BayesianLinearNormal(torch.nn.Module):
 
     def __init__(self, in_channels, out_channels, prior=torch.distributions.normal.Normal(0, .1)):
         super(BayesianLinearNormal, self).__init__()
 
-        self.weight = LinearNormal(out_channels, in_channels)
-        self.bias = LinearNormal(out_channels)
+        self.weight = NormalWeight(out_channels, in_channels)
+        self.bias = NormalWeight(out_channels)
         self.prior = prior
 
     @property
@@ -112,15 +96,31 @@ class BayesianLinearNormal(torch.nn.Module):
         self.weight.sample()
         self.bias.sample()
 
-    def forward(self, x):
-        self.sample()
+    def forward(self, x, sample=True):
+        if sample:
+            self.sample()
+
         return torch.nn.functional.linear(x, *self.sampled)
 
 
-class BayesianNeuralNetwork(torch.nn.Module):
+class BayesianModelBase(torch.nn.Module):
 
-    def __init__(self, in_channels, out_channels, prior=torch.distributions.normal.Normal(0, .1)):
-        super(BayesianNeuralNetwork, self).__init__()
+    def __init__(self, in_channels, out_channels, prior, samples):
+        super(BayesianModelBase, self).__init__()
+
+        self.prior = prior
+        self.samples = samples
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+
+
+class BayesianNeuralNetwork(BayesianModelBase):
+
+    def __init__(self, in_channels, out_channels,
+                 prior=torch.distributions.normal.Normal(0, .1), samples=30):
+        super(BayesianNeuralNetwork, self).__init__(
+            in_channels, out_channels, prior, samples
+        )
 
         self.layers = torch.nn.Sequential(
             BayesianLinearNormal(in_channels, 512, prior=prior),
@@ -132,14 +132,20 @@ class BayesianNeuralNetwork(torch.nn.Module):
     def summary(self, *args, **kwargs):
         summary(self, *args, **kwargs)
 
-    def forward(self, x):
-        return self.layers(x)
+    def forward(self, x, samples=None):
+        if samples is None:
+            samples = self.samples
+
+        return [self.layers(x) for _ in range(samples)]
 
 
-class BayesianConvolutionalNeuralNetwork(torch.nn.Module):
+class BayesianConvolutionalNeuralNetwork(BayesianModelBase):
 
-    def __init__(self, in_channels, out_channels, prior=torch.distributions.normal.Normal(0, .1)):
-        super(BayesianConvolutionalNeuralNetwork, self).__init__()
+    def __init__(self, in_channels, out_channels,
+                 prior=torch.distributions.normal.Normal(0, .1), samples=30):
+        super(BayesianConvolutionalNeuralNetwork, self).__init__(
+            in_channels, out_channels, prior, samples
+        )
 
         self.layers = torch.nn.Sequential(
             torch.nn.Conv2d(in_channels, 8, 3),
@@ -157,8 +163,11 @@ class BayesianConvolutionalNeuralNetwork(torch.nn.Module):
     def summary(self, *args, **kwargs):
         summary(self, *args, **kwargs)
 
-    def forward(self, x):
-        return self.layers(x)
+    def forward(self, x, samples=None):
+        if samples is None:
+            samples = self.samples
+
+        return [self.layers(x) for _ in range(samples)]
 
 
 class PruneBayesianNormal():
@@ -180,5 +189,5 @@ class PruneBayesianNormal():
 
 
 if __name__ == "__main__":
-    model = BayesianNeuralNetwork(784, 10).to('cpu')
-    model.summary((1, 784), device='cpu')
+    model = BayesianNeuralNetwork(784, 10, samples=1).to('cpu')
+    model.summary([(1, 784)], device='cpu')
