@@ -189,5 +189,5 @@ class PruneBayesianNormal():
 
 
 if __name__ == "__main__":
-    model = BayesianNeuralNetwork(784, 10, samples=1).to('cpu')
-    model.summary([(1, 784)], device='cpu')
+    model = BayesianNeuralNetwork(784, 10, samples=1).to('cuda')
+    model.summary([(1, 784)], device='cuda')
