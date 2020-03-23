@@ -1,3 +1,4 @@
+import bnn.nn
 from itertools import repeat
 from collections.abc import Iterable
 from torch.nn.modules.container import Sequential, ModuleList, ModuleDict
@@ -42,9 +43,8 @@ def apply_wb(module, fn, *args, **kwargs):
 
 
 def traverse(module, fn, *args, **kwargs):
-    from .nn import BayesianModule, BayesianNetworkModule
 
-    if isinstance(module, (ModuleList, ModuleDict, Sequential, BayesianNetworkModule)):
+    if isinstance(module, (ModuleList, ModuleDict, Sequential, bnn.nn.BayesianNetworkModule)):
         result = []
         for m in module.children():
             res = traverse(m, fn, *args, **kwargs)
@@ -53,7 +53,7 @@ def traverse(module, fn, *args, **kwargs):
 
         if result:
             return result
-    elif isinstance(module, BayesianModule):
+    elif isinstance(module, bnn.nn.BayesianModule):
         result = fn(module, *args, **kwargs)
     else:
         result = None

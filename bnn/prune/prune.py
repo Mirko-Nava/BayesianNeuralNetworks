@@ -1,5 +1,5 @@
 import torch
-from .utils import apply_wb
+from ..utils import apply_wb
 
 
 class PruneNormal():

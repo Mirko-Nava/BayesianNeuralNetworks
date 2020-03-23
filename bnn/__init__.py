@@ -1,6 +1,12 @@
+import bnn.nn
+import bnn.prune
+import bnn.utils
+
 __version__ = '0.0.1'
-__author__ = 'Mirko Nava nava.mirko@gmail.com'
+
 __all__ = [
     'nn',
-    'prune'
+    'prune',
+    'utils',
+    '__version__'
 ]

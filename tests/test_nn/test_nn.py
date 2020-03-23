@@ -1,6 +1,11 @@
+import torch
 import pytest
 from bnn.nn import *
-from torch import zeros_like, ones_like, full_like
+from torch.nn import init
+from torch.distributions import Normal
+from torch.nn.parameter import Parameter
+from torch.distributions.kl import kl_divergence
+from torch import zeros_like, ones_like, full_like, Size
 
 
 def allclose(x, y, tol=1e-5):
@@ -24,12 +29,11 @@ def test_BayesianModule():
 
 
 def test_BayesianNetworkModule():
-    bnm = BayesianNetworkModule(3, 5, Normal(0, 1), 10)
+    bnm = BayesianNetworkModule(3, 5, 10)
 
     assert bnm.in_channels == 3
     assert bnm.out_channels == 5
     assert bnm.samples == 10
-    assert eq_dist(bnm.prior, Normal(0, 1))
 
     with pytest.raises(NotImplementedError):
         bnm.forward(torch.zeros(2, 3, 5))

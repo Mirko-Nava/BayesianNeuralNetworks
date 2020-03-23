@@ -1,6 +1,7 @@
+import torch
 import pytest
-from bnn.nn import *
 from bnn.prune import *
+from bnn.utils import *
 
 
 def test_PruneNormal(get_PruneNormal):

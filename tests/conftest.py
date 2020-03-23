@@ -1,16 +1,21 @@
+import math
+import torch
 import pytest
 from bnn.nn import *
-from bnn import utils
 from torch import Size
+from bnn.prune import *
+from bnn.utils import *
+from torch.distributions import Normal
+
 
 # Fixtures for utils
 
 
 class ComposableBNN(BayesianNetworkModule):
 
-    def __init__(self, in_channels, out_channels, prior, arch):
+    def __init__(self, in_channels, out_channels, arch):
         super(ComposableBNN, self).__init__(
-            in_channels, out_channels, prior, samples=1)
+            in_channels, out_channels, samples=1)
 
         self.arch = arch
 
@@ -101,15 +106,15 @@ def get_traverse():
         (NormalLinear(3, 3, False, Normal(0, 1)),
          lambda x: [x.bias is not None],
          [False]),
-        (ComposableBNN(3, 4, Normal(0, 1),
+        (ComposableBNN(3, 4,
                        NormalLinear(3, 4, Normal(0, 1))),
          lambda x: [x.bias is not None],
          [True]),
-        (ComposableBNN(3, 4, Normal(0, 1),
+        (ComposableBNN(3, 4,
                        torch.nn.Sequential(
-                       NormalLinear(3, 4, Normal(0, 1)),
-                       NormalLinear(4, 2, Normal(0, 1)),
-                       NormalLinear(2, 1, Normal(0, 1)))),
+                           NormalLinear(3, 4, Normal(0, 1)),
+                           NormalLinear(4, 2, Normal(0, 1)),
+                           NormalLinear(2, 1, Normal(0, 1)))),
          lambda x: [x.weight.shape],
          [Size([4, 3]), Size([2, 4]), Size([1, 2])])
     ]
@@ -232,16 +237,16 @@ get_FlipOutNormalConv3d = get_FlipOutNormalConv1d
 @pytest.fixture
 def get_KLDivergence():
     return [
-        (ComposableBNN(3, 4, Normal(0, 1),
+        (ComposableBNN(3, 4,
                        torch.nn.Linear(3, 4)),
          'error'),
-        (ComposableBNN(3, 4, Normal(0, 1),
+        (ComposableBNN(3, 4,
                        torch.nn.Sequential(
                            torch.nn.Linear(3, 4),
                            torch.nn.Linear(4, 2),
                            torch.nn.Linear(2, 1))),
          'error'),
-        (ComposableBNN(3, 4, Normal(0, 1),
+        (ComposableBNN(3, 4,
                        torch.nn.Sequential(
                            torch.nn.Linear(3, 4),
                            NormalLinear(4, 2, Normal(0, 1)),
@@ -256,19 +261,19 @@ def get_KLDivergence():
 @pytest.fixture
 def get_PruneNormal():
     return [
-        (ComposableBNN(3, 4, Normal(0, 1),
+        (ComposableBNN(3, 4,
                        torch.nn.Sequential(
                            torch.nn.Linear(3, 100),
                            NormalLinear(100, 100, Normal(0, 1)),
                            torch.nn.Linear(100, 4))),
          0.3),
-        (ComposableBNN(3, 4, Normal(0, 1),
+        (ComposableBNN(3, 4,
                        torch.nn.Sequential(
                            torch.nn.Linear(3, 100),
                            NormalLinear(100, 100, Normal(0, 1)),
                            torch.nn.Linear(100, 4))),
          0.5),
-        (ComposableBNN(3, 4, Normal(0, 1),
+        (ComposableBNN(3, 4,
                        torch.nn.Sequential(
                            torch.nn.Linear(3, 100),
                            NormalLinear(100, 100, Normal(0, 1)),
