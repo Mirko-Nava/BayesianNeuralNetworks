@@ -7,13 +7,13 @@ from .container import BayesianModule
 
 class BayesianLinear(BayesianModule):
 
-    def __init__(self, in_channels, out_channels, bias, weight, prior):
+    def __init__(self, in_features, out_features, bias, weight, prior):
         super(BayesianLinear, self).__init__(
-            in_channels, out_channels, prior)
+            in_features, out_features, prior)
 
-        self.weight = weight(out_channels, in_channels)
+        self.weight = weight(out_features, in_features)
         if bias:
-            self.bias = weight(out_channels)
+            self.bias = weight(out_features)
         else:
             self.register_parameter('bias', None)
 
@@ -25,10 +25,10 @@ class BayesianLinear(BayesianModule):
 
 class NormalLinear(BayesianLinear):
 
-    def __init__(self, in_channels, out_channels, bias=True,
+    def __init__(self, in_features, out_features, bias=True,
                  prior=torch.distributions.normal.Normal(0, .1)):
         super(NormalLinear, self).__init__(
-            in_channels, out_channels, bias, WeightNormal, prior)
+            in_features, out_features, bias, WeightNormal, prior)
 
     def reset_parameters(self):
         init.kaiming_uniform_(self.weight.mean, a=math.sqrt(5))
@@ -61,10 +61,10 @@ class NormalLinear(BayesianLinear):
 
 class FlipoutNormalLinear(NormalLinear):
 
-    def __init__(self, in_channels, out_channels,  # todo: no bias
+    def __init__(self, in_features, out_features,  # todo: no bias
                  prior=torch.distributions.normal.Normal(0, .1)):
         super(FlipoutNormalLinear, self).__init__(
-            in_channels, out_channels, False, prior)
+            in_features, out_features, False, prior)
 
     def sample(self):
         self.R = (torch.rand(self.weight.size(0),
