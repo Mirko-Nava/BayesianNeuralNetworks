@@ -100,7 +100,7 @@ for epoch in epochs_logger:
         divergence = kld_function(model)
         likelihood = torch.stack([
             loss_function(pred, y) for pred in preds
-        ]).mean() / model.samples
+        ]).mean()
 
         loss = likelihood + divergence
         loss.backward()
