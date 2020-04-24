@@ -9,9 +9,10 @@ class PruneNormal():
 
     def prune_param(self, param, percentage, module):
         log_prob = param.dist.log_prob(0)
-        log_prob = (log_prob - log_prob.min()) / \
-            (log_prob.max() - log_prob.min())
-        mask = log_prob < percentage
+        flattened = log_prob.flatten()
+        _, indices = torch.topk(flattened, int(percentage * flattened.size(0)))
+        mask = torch.zeros_like(flattened)
+        mask = mask.scatter(0, indices, 1).bool().view(log_prob.shape)
         param.mean[mask] = 0
         param.scale[mask] = -20
 
