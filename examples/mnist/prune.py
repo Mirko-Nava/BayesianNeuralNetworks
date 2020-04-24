@@ -1,6 +1,5 @@
 import torch
-from train import BCNN
-from torchsummary import summary
+from model import BCNN
 from bnn.prune import PruneNormal
 from torchvision import transforms
 from torchvision.datasets import MNIST
@@ -11,7 +10,6 @@ def main():
     # Hyperparameters
 
     batch_size = 1024
-    learning_rate = 1e-3
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     # Dataset
@@ -25,9 +23,10 @@ def main():
     # Model
 
     model = BCNN(1, 10).to(device)
-    model.load_state_dict(torch.load('./examples/mnist/mnist_pretrained.pth'))
+    model.load_state_dict(
+        torch.load('./examples/mnist/mnist_pretrained.pth',
+                   map_location=device))
     model.eval()
-    summary(model, (1, 28, 28))
 
     # Pruning
 
@@ -52,7 +51,7 @@ def main():
         test_accuracy = correct / count
 
         print(
-            f'dropped {drop_percentage:.2f}% of weights, accuracy: {100 * test_accuracy:.4f}')
+            f'dropped {drop_percentage:.2f}% of weights, accuracy: {100 * test_accuracy:.2f}%')
 
 
 if __name__ == '__main__':

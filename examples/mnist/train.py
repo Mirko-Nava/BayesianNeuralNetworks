@@ -1,51 +1,18 @@
 import torch
 from tqdm import tqdm
+from model import BCNN
 from statistics import mean
 from torchsummary import summary
 from torchvision import transforms
 from torchvision.datasets import MNIST
-from torch.nn import Conv2d, BatchNorm2d, ELU, Softmax
-from bnn.nn import BayesianNetworkModule, NormalConv2d, NormalLinear, KLDivergence, Entropy
-
-
-class Flatten(torch.nn.Module):
-    def __init__(self):
-        super(Flatten, self).__init__()
-
-    def forward(self, x):
-        batch_size = x.size(0)
-        return x.view(batch_size, -1)
-
-
-class BCNN(BayesianNetworkModule):
-
-    def __init__(self, in_channels, out_channels, samples=10):
-        super(BCNN, self).__init__(in_channels, out_channels, samples)
-
-        self.layers = torch.nn.Sequential(
-            Conv2d(in_channels, 32, 5, padding=2, stride=2),
-            BatchNorm2d(32),
-            ELU(),
-            NormalConv2d(32, 32, 3, padding=1, stride=1),
-            ELU(),
-            Conv2d(32, 64, 3, padding=0, stride=2),
-            ELU(),
-            Conv2d(64, 64, 3, padding=1, stride=2),
-            ELU(),
-            Flatten(),
-            NormalLinear(576, out_channels),
-            Softmax(dim=-1)
-        )
-
-    def _forward(self, x):
-        return self.layers(x)
+from bnn.nn import KLDivergence, Entropy
 
 
 def main():
 
     # Hyperparameters
 
-    epochs = 10
+    epochs = 15
     batch_size = 1024
     learning_rate = 1e-3
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -65,7 +32,7 @@ def main():
     # Model
 
     model = BCNN(1, 10).to(device)
-    summary(model, (1, 28, 28))
+    summary(model, (1, 28, 28), device=device)
 
     # Loss, Metrics and Optimizer
 
