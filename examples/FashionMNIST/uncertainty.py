@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from torchsummary import summary
 from bnn.prune import PruneNormal
 from torchvision import transforms
-from torchvision.datasets import MNIST
+from torchvision.datasets import FashionMNIST
 
 
 def main():
@@ -18,14 +18,14 @@ def main():
     # Dataset
 
     transform = transforms.ToTensor()
-    test_dataset = MNIST(root='./examples/data/',
-                         train=False, transform=transform)
+    test_dataset = FashionMNIST(root='./examples/data/',
+                                train=False, transform=transform)
 
     # Model
 
     model = BCNN(1, 10).to(device)
     model.load_state_dict(
-        torch.load('./examples/mnist/mnist_pretrained.pth',
+        torch.load('./examples/FashionMNIST/fmnist_pretrained.pth',
                    map_location=device))
     model.eval()
     summary(model, (1, 28, 28), device=device)

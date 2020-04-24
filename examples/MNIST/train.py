@@ -12,7 +12,7 @@ def main():
 
     # Hyperparameters
 
-    epochs = 15
+    epochs = 5
     batch_size = 1024
     learning_rate = 1e-3
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -94,7 +94,7 @@ def main():
         log_str += f', TA: {test_accuracy:.4f}'
         epochs_logger.set_postfix_str(log_str)
 
-    torch.save(model.state_dict(), './examples/mnist/mnist_pretrained.pth')
+    torch.save(model.state_dict(), './examples/MNIST/mnist_pretrained.pth')
 
 
 if __name__ == '__main__':

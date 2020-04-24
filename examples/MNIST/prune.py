@@ -24,7 +24,7 @@ def main():
 
     model = BCNN(1, 10).to(device)
     model.load_state_dict(
-        torch.load('./examples/mnist/mnist_pretrained.pth',
+        torch.load('./examples/MNIST/mnist_pretrained.pth',
                    map_location=device))
     model.eval()
 
