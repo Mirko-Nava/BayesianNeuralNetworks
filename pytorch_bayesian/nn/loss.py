@@ -16,7 +16,7 @@ class KLDivergence(Module):
 
     def forward(self, model):
         result = model.traverse(
-            lambda m: apply_wb(m, self.compute_kl))
+            lambda m: apply_wb(m, self.compute_kl, pass_module=True))
 
         if result is None:
             raise ValueError(

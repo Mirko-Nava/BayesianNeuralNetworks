@@ -15,7 +15,7 @@ def print_unique_percentage(model):
         print(f'{name} {100 * unique/elements:.2f}% ({unique} / {elements} parameters)')
 
     with torch.no_grad():
-        model.traverse(lambda m: apply_wb(m, print_internal))
+        model.traverse(lambda m: apply_wb(m, print_internal, pass_module=True))
 
 
 def main():

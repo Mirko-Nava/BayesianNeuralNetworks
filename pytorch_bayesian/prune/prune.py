@@ -7,7 +7,7 @@ class PruneNormal():
     def __call__(self, module, percentage=0.5):
         self.prune(module, percentage)
 
-    def prune_param(self, param, percentage, module):
+    def prune_param(self, param, percentage):
         log_prob = param.dist.log_prob(0)
         flattened = log_prob.flatten()
         _, indices = torch.topk(flattened, int(percentage * flattened.size(0)))
