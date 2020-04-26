@@ -15,7 +15,7 @@ class BayesianModule(Module):
 
 class BayesianNetworkModule(Module):
 
-    def __init__(self, in_channels, out_channels, samples=30):
+    def __init__(self, in_channels, out_channels, samples=10):
         super(BayesianNetworkModule, self).__init__()
 
         self.samples = samples
