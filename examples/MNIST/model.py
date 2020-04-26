@@ -1,6 +1,6 @@
 import torch
 from torch.nn import Conv2d, BatchNorm2d, ELU, Softmax
-from bnn.nn import BayesianNetworkModule, NormalConv2d, NormalLinear
+from pytorch_bayesian.nn import BayesianNetworkModule, NormalConv2d, NormalLinear
 
 
 class Flatten(torch.nn.Module):

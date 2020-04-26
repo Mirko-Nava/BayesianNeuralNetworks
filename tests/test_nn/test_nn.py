@@ -1,7 +1,7 @@
 import torch
 import pytest
-from bnn.nn import *
 from torch.nn import init
+from pytorch_bayesian.nn import *
 from torch.distributions import Normal
 from torch.nn.parameter import Parameter
 from torch.distributions.kl import kl_divergence

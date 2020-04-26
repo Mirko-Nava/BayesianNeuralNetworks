@@ -1,11 +1,11 @@
-from bnn import __version__
+from pytorch_bayesian import __version__
 from setuptools import setup, find_packages
 
 with open('README.md') as readme_file:
     README = readme_file.read()
 
 setup_args = dict(
-    name='bnn',
+    name='pytorch_bayesian',
     version=__version__,
     author='Mirko Nava',
     author_email='nava.mirko@gmail.com',

@@ -5,7 +5,7 @@ from statistics import mean
 from torchsummary import summary
 from torchvision import transforms
 from torchvision.datasets import MNIST
-from bnn.nn import KLDivergence, Entropy
+from pytorch_bayesian.nn import KLDivergence, Entropy
 
 
 def main():

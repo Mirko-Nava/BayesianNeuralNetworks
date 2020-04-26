@@ -1,5 +1,5 @@
 import pytest
-from bnn.utils import *
+from pytorch_bayesian.utils import *
 from collections.abc import Iterable
 
 

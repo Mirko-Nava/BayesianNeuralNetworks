@@ -1,7 +1,7 @@
 import torch
 import pytest
-from bnn.prune import *
-from bnn.utils import *
+from pytorch_bayesian.prune import *
+from pytorch_bayesian.utils import *
 
 
 def test_PruneNormal(get_PruneNormal):

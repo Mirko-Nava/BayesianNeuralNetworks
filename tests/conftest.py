@@ -1,10 +1,10 @@
 import math
 import torch
 import pytest
-from bnn.nn import *
+from pytorch_bayesian.nn import *
 from torch import Size
-from bnn.prune import *
-from bnn.utils import *
+from pytorch_bayesian.prune import *
+from pytorch_bayesian.utils import *
 from torch.distributions import Normal
 
 

@@ -1,12 +1,12 @@
 import torch
 from PIL import Image
 from model import BCNN
-from bnn.nn import Entropy
 import matplotlib.pyplot as plt
 from torchsummary import summary
-from bnn.prune import PruneNormal
 from torchvision import transforms
+from pytorch_bayesian.nn import Entropy
 from torchvision.datasets import FashionMNIST
+from pytorch_bayesian.prune import PruneNormal
 
 
 def main():

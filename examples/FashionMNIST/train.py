@@ -4,8 +4,8 @@ from model import BCNN
 from statistics import mean
 from torchsummary import summary
 from torchvision import transforms
-from bnn.nn import KLDivergence, Entropy
 from torchvision.datasets import FashionMNIST
+from pytorch_bayesian.nn import KLDivergence, Entropy
 
 
 def main():

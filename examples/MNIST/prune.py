@@ -1,8 +1,8 @@
 import torch
 from model import BCNN
-from bnn.prune import PruneNormal
 from torchvision import transforms
 from torchvision.datasets import MNIST
+from pytorch_bayesian.prune import PruneNormal
 
 
 def main():
@@ -32,7 +32,7 @@ def main():
 
     pruner = PruneNormal()
 
-    for drop_percentage in torch.linspace(0, 0.25, 10):
+    for drop_percentage in torch.linspace(.75, 1, 6):
         pruner(model, drop_percentage)
 
         count = 0
@@ -50,8 +50,10 @@ def main():
 
         test_accuracy = correct / count
 
-        print(
-            f'dropped {drop_percentage:.2f}% of weights, accuracy: {100 * test_accuracy:.2f}%')
+        print(f'dropped {100 * drop_percentage:.2f}% of weights',
+              f'accuracy: {100 * test_accuracy:.2f}%', sep=', ')
+
+    3 == 3
 
 
 if __name__ == '__main__':

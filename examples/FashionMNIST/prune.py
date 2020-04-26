@@ -1,8 +1,8 @@
 import torch
 from model import BCNN
-from bnn.prune import PruneNormal
 from torchvision import transforms
 from torchvision.datasets import FashionMNIST
+from pytorch_bayesian.prune import PruneNormal
 
 
 def main():
