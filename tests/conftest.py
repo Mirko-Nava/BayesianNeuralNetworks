@@ -74,19 +74,28 @@ def get_triple():
 def get_apply_wb():
     return [
         (torch.nn.Linear(3, 3),
-         lambda x, module: None,
+         lambda x: None,
+         False,
          None),
         (torch.nn.Linear(3, 3),
-         lambda x, module: x.shape,
+         lambda x, module: None,
+         True,
+         None),
+        (torch.nn.Linear(3, 3),
+         lambda x: x.shape,
+         False,
          [(3, 3), (3,)]),
         (NormalLinear(3, 3, Normal(0, 1)),
          lambda x, module: x.shape,
+         True,
          [(3, 3), (3,)]),
         (NormalLinear(3, 3, Normal(0, 1)),
          lambda x, module: type(x),
+         True,
          [WeightNormal, WeightNormal]),
         (NormalLinear(3, 3, False, Normal(0, 1)),
          lambda x, module: type(x),
+         True,
          [WeightNormal])
     ]
 
