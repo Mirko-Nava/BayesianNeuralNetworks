@@ -44,7 +44,3 @@ class WeightNormal(Module):
 
     def sample(self):
         self.sampled = self.mean + self.stddev * torch.randn_like(self.mean)
-
-    def log_prob(self, value):
-        log_term = self.stddev.log() + math.log(math.sqrt(2 * math.pi))
-        return -((value - self.mean) ** 2) / (2 * self.variance) - log_term

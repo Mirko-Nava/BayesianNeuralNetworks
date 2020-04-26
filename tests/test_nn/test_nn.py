@@ -64,7 +64,6 @@ def test_WeightNormal(get_WeightNormal):
         assert (wn.stddev ** 2 == wn.variance).all()
         assert allclose(wn.sampled,
                         zeros_like(wn.sampled))
-        assert (wn.log_prob(0) == wn.dist.log_prob(0)).all()
 
 
 def test_BayesianLinear(get_BayesianLinear):
