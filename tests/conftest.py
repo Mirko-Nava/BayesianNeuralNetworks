@@ -284,8 +284,8 @@ def get_PruneNormal():
          0.5),
         (ComposableBNN(3, 4,
                        torch.nn.Sequential(
-                           torch.nn.Linear(3, 100),
+                           NormalConv1d(10, 100, 5),
                            NormalLinear(100, 100, Normal(0, 1)),
                            torch.nn.Linear(100, 4))),
-         0.8)
+         0.9)
     ]
