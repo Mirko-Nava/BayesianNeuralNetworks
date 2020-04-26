@@ -2,7 +2,20 @@ import torch
 from model import BCNN
 from torchvision import transforms
 from torchvision.datasets import MNIST
+from pytorch_bayesian.utils import apply_wb
 from pytorch_bayesian.prune import PruneNormal
+
+
+def print_unique_percentage(model):
+
+    def print_internal(w, module):
+        name = f'{module.__class__.__name__}.mean.unique_values:'
+        elements = w.mean.nelement()
+        unique = torch.unique(w.mean).size(0)
+        print(f'{name} {100 * unique/elements:.2f}% ({unique} / {elements} parameters)')
+
+    with torch.no_grad():
+        model.traverse(lambda m: apply_wb(m, print_internal))
 
 
 def main():
@@ -53,7 +66,8 @@ def main():
         print(f'dropped {100 * drop_percentage:.2f}% of weights',
               f'accuracy: {100 * test_accuracy:.2f}%', sep=', ')
 
-    3 == 3
+        print_unique_percentage(model)
+        print()
 
 
 if __name__ == '__main__':

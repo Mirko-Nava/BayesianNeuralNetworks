@@ -25,7 +25,7 @@ class WeightNormal(Module):
 
     @property
     def stddev(self):
-        return 1e-6 + torch.nn.functional.softplus(self.scale)
+        return 1e-10 + torch.nn.functional.softplus(self.scale)
 
     @property
     def variance(self):

@@ -14,7 +14,7 @@ class PruneNormal():
         mask = torch.zeros_like(flattened)
         mask = mask.scatter(0, indices, 1).bool().view(log_prob.shape)
         param.mean[mask] = 0
-        param.scale[mask] = -20
+        param.scale[mask] = -30
 
     def prune(self, module, percentage=0.5):
         with torch.no_grad():
