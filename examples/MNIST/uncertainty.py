@@ -44,13 +44,13 @@ def main():
         image, _ = test_dataset[index]
         image = image.to(device).unsqueeze(0)
         rotated = transforms.ToPILImage()(image[0]).rotate(
-            45, resample=Image.BILINEAR)
+            60, resample=Image.BILINEAR)
         rotated = transforms.ToTensor()(rotated).unsqueeze(0)
 
         for ax, name, x in zip(axs, ['original', 'rotated'], [image, rotated]):
             preds = model(x)
 
-            agg_preds = torch.stack(preds, dim=0).prod(dim=0)
+            agg_preds = torch.stack(preds, dim=0).mean(dim=0)
             logits = agg_preds.argmax(dim=-1).item()
             entropy = entropy_function(agg_preds).item()
 

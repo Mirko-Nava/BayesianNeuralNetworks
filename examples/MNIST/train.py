@@ -64,7 +64,7 @@ def main():
             loss.backward()
             optimizer.step()
 
-            agg_preds = torch.stack(preds, dim=0).prod(dim=0)
+            agg_preds = torch.stack(preds, dim=0).mean(dim=0)
             logits = agg_preds.argmax(dim=-1)
             accuracy = (logits == y).float().mean()
             entropy = entropy_function(agg_preds)
@@ -84,7 +84,7 @@ def main():
 
                 test_preds = model(test_x)
                 test_logits = torch.stack(
-                    test_preds, dim=-1).prod(dim=-1).argmax(dim=-1)
+                    test_preds, dim=-1).mean(dim=-1).argmax(dim=-1)
 
                 count += len(test_y)
                 correct += (test_logits == test_y).to(torch.float).sum()

@@ -56,7 +56,7 @@ def main():
 
                 test_preds = model(test_x)
                 test_logits = torch.stack(
-                    test_preds, dim=-1).prod(dim=-1).argmax(dim=-1)
+                    test_preds, dim=-1).mean(dim=-1).argmax(dim=-1)
 
                 count += len(test_y)
                 correct += (test_logits == test_y).to(torch.float).sum()
