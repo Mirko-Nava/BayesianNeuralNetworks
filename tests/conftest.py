@@ -299,6 +299,15 @@ def get_KLDivergence():
     ]
 
 
+@pytest.fixture
+def get_Entropy():
+    return [
+        (-1, torch.tensor([0.5, 0.5])),
+        (-1, torch.tensor([0., 1.])),
+        (-1, torch.tensor([0., 0.]))
+    ]
+
+
 # Fixtures for prune
 
 

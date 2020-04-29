@@ -1,4 +1,5 @@
 import torch
+import warnings
 from torch.nn import Module
 from ..utils import apply_wb
 from torch.distributions.kl import kl_divergence
@@ -31,4 +32,8 @@ class Entropy(Module):
         self.dim = dim
 
     def forward(self, x):
+        if (x == 0).all():
+            warnings.warn(
+                'Entropy received a tensor containing all zeros',
+                RuntimeWarning)
         return (-x * torch.log(x + 1e-10)).sum(dim=self.dim).mean()
