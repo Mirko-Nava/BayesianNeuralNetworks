@@ -258,6 +258,27 @@ get_FlipOutNormalConv3d = get_FlipOutNormalConv1d
 
 
 @pytest.fixture
+def get_MCDropoutConvNd():
+    return [
+        (3, 4, 0.5)
+    ]
+
+
+@pytest.fixture
+def get_MCDropoutConv1d():
+    return [
+        (10, 10, 5, 1, 1, 1, 1, False, 0.2),
+        (10, 10, 5, 1, 1, 1, 1, True, 0.2),
+        (30, 40, 9, 1, 1, 1, 1, False, 0.2),
+        (30, 40, 9, 1, 1, 1, 1, True, 0.2)
+    ]
+
+
+get_MCDropoutConv2d = get_MCDropoutConv1d
+get_MCDropoutConv3d = get_MCDropoutConv1d
+
+
+@pytest.fixture
 def get_KLDivergence():
     return [
         (ComposableBNN(3, 4,

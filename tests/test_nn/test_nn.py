@@ -146,10 +146,6 @@ def test_MCDropoutLinear(get_MCDropoutLinear):
 
         assert mcdl.prior is None
         assert mcdl.linear.weight.shape == (o, i)
-        # assert hasattr(mcdl, 'sample')  # todo: not used
-        # assert hasattr(mcdl, 'sampled')
-        # assert isinstance(mcdl.sampled, tuple)
-        # assert len(mcdl.sampled) == 2
 
         if b:
             assert mcdl.linear.bias.shape == (o,)
@@ -365,6 +361,112 @@ def test_FlipOutNormalConv3d(get_FlipOutNormalConv3d):
             x, ones_like(fonc3d.weight.mean), None,
             s, pad, d, g)
         assert allclose(result, expected)
+
+
+def test_MCDropoutConvNd(get_MCDropoutConvNd):
+    for example in get_MCDropoutConvNd:
+        i, o, p = example
+        mcdcnd = MCDropoutConvNd(*example)
+
+        assert mcdcnd.prior is None
+        assert mcdcnd.in_channels == i
+        assert mcdcnd.out_channels == o
+
+
+def test_MCDropoutConv1d(get_MCDropoutConv1d):
+    for example in get_MCDropoutConv1d:
+        i, o, k, s, pad, d, g, b, p = example
+        mcdc1d = MCDropoutConv1d(*example)
+
+        assert mcdc1d.conv.weight.shape == (o, i // g, k)
+
+        if b:
+            assert mcdc1d.conv.bias.shape == (o,)
+        else:
+            assert mcdc1d.conv.bias is None
+
+        init.constant_(mcdc1d.conv.weight, 1)
+        if b:
+            init.constant_(mcdc1d.conv.bias, 3)
+
+        x = torch.ones(1, i, 100)
+        result = mcdc1d(x)
+        expected = torch.nn.functional.conv1d(
+            x, ones_like(mcdc1d.conv.weight), None,
+            s, pad, d, g)
+
+        if b:
+            assert allclose(result.mean(),
+                            expected.mean() + 3,
+                            tol=1e-1)
+        else:
+            assert allclose(result.mean(),
+                            expected.mean(),
+                            tol=1e-1)
+
+
+def test_MCDropoutConv2d(get_MCDropoutConv2d):
+    for example in get_MCDropoutConv2d:
+        i, o, k, s, pad, d, g, b, p = example
+        mcdc2d = MCDropoutConv2d(*example)
+
+        assert mcdc2d.conv.weight.shape == (o, i // g, k, k)
+
+        if b:
+            assert mcdc2d.conv.bias.shape == (o,)
+        else:
+            assert mcdc2d.conv.bias is None
+
+        init.constant_(mcdc2d.conv.weight, 1)
+        if b:
+            init.constant_(mcdc2d.conv.bias, 3)
+
+        x = torch.ones(1, i, 100, 100)
+        result = mcdc2d(x)
+        expected = torch.nn.functional.conv2d(
+            x, ones_like(mcdc2d.conv.weight), None,
+            s, pad, d, g)
+
+        if b:
+            assert allclose(result.mean(),
+                            expected.mean() + 3,
+                            tol=1e-1)
+        else:
+            assert allclose(result.mean(),
+                            expected.mean(),
+                            tol=1e-1)
+
+
+def test_MCDropoutConv3d(get_MCDropoutConv3d):
+    for example in get_MCDropoutConv3d:
+        i, o, k, s, pad, d, g, b, p = example
+        mcdc3d = MCDropoutConv3d(*example)
+
+        assert mcdc3d.conv.weight.shape == (o, i // g, k, k, k)
+
+        if b:
+            assert mcdc3d.conv.bias.shape == (o,)
+        else:
+            assert mcdc3d.conv.bias is None
+
+        init.constant_(mcdc3d.conv.weight, 1)
+        if b:
+            init.constant_(mcdc3d.conv.bias, 3)
+
+        x = torch.ones(1, i, 100, 10, 10)
+        result = mcdc3d(x)
+        expected = torch.nn.functional.conv3d(
+            x, ones_like(mcdc3d.conv.weight), None,
+            s, pad, d, g)
+
+        if b:
+            assert allclose(result.mean(),
+                            expected.mean() + 3,
+                            tol=1e-1)
+        else:
+            assert allclose(result.mean(),
+                            expected.mean(),
+                            tol=1e-1)
 
 
 def test_KLDivergence(get_KLDivergence):

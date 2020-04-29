@@ -249,3 +249,69 @@ class FlipOutNormalConv3d(FlipOutNormalConvNd):
             self.groups) * self.R.expand_as(output)
 
         return output
+
+
+class MCDropoutConvNd(BayesianModule):
+
+    def __init__(self, in_channels, out_channels, drop_prob):
+        super(MCDropoutConvNd, self).__init__(
+            in_channels, out_channels, None)
+
+        self.drop_prob = drop_prob
+
+
+class MCDropoutConv1d(MCDropoutConvNd):
+
+    def __init__(self, in_channels, out_channels, kernel_size, stride,
+                 padding, dilation, groups, bias, drop_prob):
+        super(MCDropoutConv1d, self).__init__(
+            in_channels, out_channels, drop_prob)
+
+        self.conv = torch.nn.Conv1d(
+            in_channels, out_channels, kernel_size, stride,
+            padding, dilation, groups, bias)
+
+    def forward(self, x, sample=True):
+        return torch.nn.functional.dropout(
+            self.conv(x),
+            self.drop_prob,
+            sample, False
+        )
+
+
+class MCDropoutConv2d(MCDropoutConvNd):
+
+    def __init__(self, in_channels, out_channels, kernel_size, stride,
+                 padding, dilation, groups, bias, drop_prob):
+        super(MCDropoutConv2d, self).__init__(
+            in_channels, out_channels, drop_prob)
+
+        self.conv = torch.nn.Conv2d(
+            in_channels, out_channels, kernel_size, stride,
+            padding, dilation, groups, bias)
+
+    def forward(self, x, sample=True):
+        return torch.nn.functional.dropout(
+            self.conv(x),
+            self.drop_prob,
+            sample, False
+        )
+
+
+class MCDropoutConv3d(MCDropoutConvNd):
+
+    def __init__(self, in_channels, out_channels, kernel_size, stride,
+                 padding, dilation, groups, bias, drop_prob):
+        super(MCDropoutConv3d, self).__init__(
+            in_channels, out_channels, drop_prob)
+
+        self.conv = torch.nn.Conv3d(
+            in_channels, out_channels, kernel_size, stride,
+            padding, dilation, groups, bias)
+
+    def forward(self, x, sample=True):
+        return torch.nn.functional.dropout(
+            self.conv(x),
+            self.drop_prob,
+            sample, False
+        )

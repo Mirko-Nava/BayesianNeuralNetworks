@@ -21,6 +21,10 @@ __all__ = [
     'FlipOutNormalConv1d',
     'FlipOutNormalConv2d',
     'FlipOutNormalConv3d',
+    'MCDropoutConvNd',
+    'MCDropoutConv1d',
+    'MCDropoutConv2d',
+    'MCDropoutConv3d',
     'KLDivergence',
     'Entropy'
 ]
