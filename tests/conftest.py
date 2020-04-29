@@ -164,6 +164,20 @@ def get_NormalLinear():
 
 
 @pytest.fixture
+def get_MCDropoutLinear():
+    return [
+        (90, 120, False, 0.7, False),
+        (90, 120, False, 0.7, True),
+        (90, 120, True, 0.7, False),
+        (90, 120, True, 0.7, True),
+        (210, 170, False, 0.2, False),
+        (210, 170, False, 0.9, True),
+        (210, 170, True, 0.2, False),
+        (210, 170, True, 0.2, True)
+    ]
+
+
+@pytest.fixture
 def get_FlipoutNormalLinear():
     return [
         (1, 1, Normal(0, 1)),

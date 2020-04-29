@@ -80,3 +80,20 @@ class FlipoutNormalLinear(NormalLinear):
         b_part = (x * self.S).matmul(self.weight.stddev.t()) * self.R
 
         return torch.nn.functional.linear(x, self.weight.mean, b_part)
+
+
+class MCDropoutLinear(BayesianModule):
+
+    def __init__(self, in_features, out_features, bias=True, drop_prob=0.5):
+        super(MCDropoutLinear, self).__init__(
+            in_features, out_features, None)
+
+        self.drop_prob = drop_prob
+        self.linear = torch.nn.Linear(in_features, out_features, bias)
+
+    def forward(self, x, sample=True):
+        return torch.nn.functional.dropout(
+            self.linear(x),
+            self.drop_prob,
+            sample, False
+        )

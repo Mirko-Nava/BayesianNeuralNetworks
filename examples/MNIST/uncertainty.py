@@ -6,7 +6,6 @@ from torchsummary import summary
 from torchvision import transforms
 from torchvision.datasets import MNIST
 from pytorch_bayesian.nn import Entropy
-from pytorch_bayesian.prune import PruneNormal
 
 
 def main():
@@ -28,7 +27,6 @@ def main():
         torch.load('./examples/MNIST/mnist_pretrained.pth',
                    map_location=device))
     model.eval()
-    summary(model, (1, 28, 28), device=device)
 
     # Metrics
 

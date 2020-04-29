@@ -139,6 +139,44 @@ def test_FlipoutNormalLinear(get_FlipoutNormalLinear):
         assert allclose(result, full_like(result, i))
 
 
+def test_MCDropoutLinear(get_MCDropoutLinear):
+    for example in get_MCDropoutLinear:
+        i, o, b, p, s = example
+        mcdl = MCDropoutLinear(i, o, b, p)
+
+        assert mcdl.prior is None
+        assert mcdl.linear.weight.shape == (o, i)
+        # assert hasattr(mcdl, 'sample')  # todo: not used
+        # assert hasattr(mcdl, 'sampled')
+        # assert isinstance(mcdl.sampled, tuple)
+        # assert len(mcdl.sampled) == 2
+
+        if b:
+            assert mcdl.linear.bias.shape == (o,)
+        else:
+            assert mcdl.linear.bias is None
+
+        init.constant_(mcdl.linear.weight, 1)
+        if b:
+            init.constant_(mcdl.linear.bias, 3)
+
+        x = ones_like(mcdl.linear.weight)
+        result = mcdl(x, sample=s)
+
+        assert allclose(torch.tensor(p * s),
+                        (result == 0).float().mean(),
+                        tol=1e-2)
+
+        if b:
+            assert allclose(result.mean(),
+                            torch.tensor(i + 3, dtype=torch.float),
+                            tol=1e-1)
+        else:
+            assert allclose(result.mean(),
+                            torch.tensor(i, dtype=torch.float),
+                            tol=1e-1)
+
+
 def test_BayesianConvNd(get_BayesianConvNd):
     for example in get_BayesianConvNd:
         i, o, k, s, pad, d, t, g, b, w, p = example

@@ -6,7 +6,6 @@ from torchsummary import summary
 from torchvision import transforms
 from pytorch_bayesian.nn import Entropy
 from torchvision.datasets import FashionMNIST
-from pytorch_bayesian.prune import PruneNormal
 
 
 def main():
@@ -28,7 +27,6 @@ def main():
         torch.load('./examples/FashionMNIST/fmnist_pretrained.pth',
                    map_location=device))
     model.eval()
-    summary(model, (1, 28, 28), device=device)
 
     # Metrics
 

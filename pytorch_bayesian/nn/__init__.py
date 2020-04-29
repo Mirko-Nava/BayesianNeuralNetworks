@@ -7,6 +7,11 @@ from .loss import *
 __all__ = [
     'BayesianModule',
     'BayesianNetworkModule',
+    'WeightNormal',
+    'BayesianLinear',
+    'NormalLinear',
+    'FlipoutNormalLinear',
+    'MCDropoutLinear',
     'BayesianConvNd',
     'NormalConvNd',
     'NormalConv1d',
@@ -16,10 +21,6 @@ __all__ = [
     'FlipOutNormalConv1d',
     'FlipOutNormalConv2d',
     'FlipOutNormalConv3d',
-    'WeightNormal',
-    'BayesianLinear',
-    'NormalLinear',
-    'FlipoutNormalLinear',
     'KLDivergence',
     'Entropy'
 ]
