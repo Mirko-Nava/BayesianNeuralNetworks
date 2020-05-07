@@ -75,6 +75,3 @@ class Titanic(torch.utils.data.Dataset):
             x, y = self.transform(x), self.transform(y)
 
         return (x, y)
-
-
-Titanic(root='./examples/data/', train=True)
