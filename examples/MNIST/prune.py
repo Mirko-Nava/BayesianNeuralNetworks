@@ -8,14 +8,15 @@ from pytorch_bayesian.prune import PruneNormal
 
 def print_unique_percentage(model):
 
-    def print_internal(w, module):
-        name = f'{module.__class__.__name__}.mean.unique_values:'
+    def print_internal(w, module, type):
+        name = f'{module.__class__.__name__}.{type}.mean.unique_values:'
         elements = w.mean.nelement()
         unique = torch.unique(w.mean).size(0)
         print(f'{name} {100 * unique/elements:.2f}% ({unique} / {elements} parameters)')
 
     with torch.no_grad():
-        model.traverse(lambda m: apply_wb(m, print_internal, pass_module=True))
+        model.traverse(lambda m: apply_wb(
+            m, print_internal, pass_module=True, pass_type=True))
 
 
 def main():
