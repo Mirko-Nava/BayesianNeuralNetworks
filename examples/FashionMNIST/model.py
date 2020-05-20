@@ -1,6 +1,6 @@
 import torch
 from torch.nn import Conv2d, BatchNorm2d, ELU, Softmax
-from pytorch_bayesian.nn import BayesianNetworkModule, NormalConv2d, NormalLinear
+from pytorch_bayesian.nn import BayesianNetworkModule, FlipOutNormalConv2d, FlipoutNormalLinear
 
 
 class Flatten(torch.nn.Module):
@@ -25,10 +25,10 @@ class BCNN(BayesianNetworkModule):
             ELU(),
             Conv2d(32, 64, 3, padding=0, stride=2),
             ELU(),
-            NormalConv2d(64, 64, 3, padding=1, stride=2),
+            FlipOutNormalConv2d(64, 64, 3, padding=1, stride=2),
             ELU(),
             Flatten(),
-            NormalLinear(576, out_channels),
+            FlipoutNormalLinear(576, out_channels),
             Softmax(dim=-1)
         )
 

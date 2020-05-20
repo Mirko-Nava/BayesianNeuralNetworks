@@ -1,11 +1,11 @@
 import math
 import torch
 import pytest
-from pytorch_bayesian.nn import *
 from torch import Size
+from pytorch_bayesian.nn import *
 from pytorch_bayesian.prune import *
 from pytorch_bayesian.utils import *
-from torch.distributions import Normal
+from torch.distributions import Normal, MultivariateNormal
 
 
 # Fixtures for utils
@@ -76,26 +76,42 @@ def get_apply_wb():
         (torch.nn.Linear(3, 3),
          lambda x: None,
          False,
+         False,
          None),
         (torch.nn.Linear(3, 3),
          lambda x, module: None,
          True,
+         False,
          None),
         (torch.nn.Linear(3, 3),
+         lambda x, module, type: None,
+         True,
+         True,
+         None),
+        (NormalLinear(3, 3, Normal(0, 1)),
+         lambda x, type: type,
+         False,
+         True,
+         ['w', 'b']),
+        (torch.nn.Linear(3, 3),
          lambda x: x.shape,
+         False,
          False,
          [(3, 3), (3,)]),
         (NormalLinear(3, 3, Normal(0, 1)),
          lambda x, module: x.shape,
          True,
+         False,
          [(3, 3), (3,)]),
         (NormalLinear(3, 3, Normal(0, 1)),
          lambda x, module: type(x),
          True,
+         False,
          [WeightNormal, WeightNormal]),
         (NormalLinear(3, 3, False, Normal(0, 1)),
          lambda x, module: type(x),
          True,
+         False,
          [WeightNormal])
     ]
 
@@ -107,7 +123,7 @@ def get_traverse():
          lambda x: [x],
          None),
         (BayesianModule(3, 3, Normal(0, 1)),
-         lambda x: [type(x.prior)],
+         lambda x: [type(x.weight_prior)],
          [Normal]),
         (NormalLinear(3, 3, Normal(0, 1)),
          lambda x: [x.bias is not None],
@@ -134,6 +150,15 @@ def get_traverse():
 
 @pytest.fixture
 def get_WeightNormal():
+    return [
+        (1,),
+        (3, 4),
+        (5, 6, 7)
+    ]
+
+
+@pytest.fixture
+def get_WeightMultivariateNormal():
     return [
         (1,),
         (3, 4),
@@ -186,6 +211,19 @@ def get_FlipoutNormalLinear():
         (3, 4, Normal(0, 1)),
         (11, 7, Normal(0, 1)),
         (11, 7, Normal(0, 1))
+    ]
+
+
+@pytest.fixture
+def get_MultivariateNormalLinear():
+    return [
+        (1, 1, False),
+        (3, 4, False),
+        (1, 1, True),
+        (3, 4, True),
+        (11, 7, True),
+        (11, 7, False),
+        (11, 7, True)
     ]
 
 

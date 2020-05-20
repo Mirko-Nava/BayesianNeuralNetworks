@@ -2,10 +2,10 @@ import torch
 import pytest
 from torch.nn import init
 from pytorch_bayesian.nn import *
-from torch.distributions import Normal
 from torch.nn.parameter import Parameter
 from torch.distributions.kl import kl_divergence
 from torch import zeros_like, ones_like, full_like
+from torch.distributions import Normal, MultivariateNormal
 
 
 def allclose(x, y, tol=1e-5):
@@ -17,7 +17,7 @@ def eq_dist(x, y):
         return False
     if x.batch_shape != y.batch_shape:
         return False
-    return kl_divergence(x, y) == 0
+    return (kl_divergence(x, y) == 0).all()
 
 
 def test_BayesianLinear(get_BayesianLinear):
@@ -40,7 +40,8 @@ def test_NormalLinear(get_NormalLinear):
         i, o, b, p = example
         nl = NormalLinear(*example)
 
-        assert eq_dist(nl.prior, Normal(0, 1))
+        assert eq_dist(nl.weight_prior, Normal(0, 1))
+        assert eq_dist(nl.bias_prior, Normal(0, 1))
         assert isinstance(nl.weight, WeightNormal)
         assert nl.weight.shape == (o, i)
         assert hasattr(nl, 'sample')
@@ -74,7 +75,8 @@ def test_FlipoutNormalLinear(get_FlipoutNormalLinear):
         i, o, p = example
         fonl = FlipoutNormalLinear(*example)
 
-        assert eq_dist(fonl.prior, Normal(0, 1))
+        assert eq_dist(fonl.weight_prior, Normal(0, 1))
+        assert eq_dist(fonl.bias_prior, Normal(0, 1))
         assert isinstance(fonl.weight, WeightNormal)
         assert fonl.weight.shape == (o, i)
         assert hasattr(fonl, 'sample')
@@ -93,12 +95,57 @@ def test_FlipoutNormalLinear(get_FlipoutNormalLinear):
         assert allclose(result, full_like(result, i))
 
 
+def test_MultivariateNormalLinear(get_MultivariateNormalLinear):
+    for example in get_MultivariateNormalLinear:
+        i, o, b = example
+        mnl = MultivariateNormalLinear(*example)
+
+        wp = MultivariateNormal(torch.zeros(o, i),
+                                torch.eye(i).repeat(o, 1, 1))
+        bp = None if not b else MultivariateNormal(
+            torch.zeros(o), torch.eye(o))
+
+        assert eq_dist(mnl.weight_prior, wp)
+        if b:
+            assert eq_dist(mnl.bias_prior, bp)
+
+        assert isinstance(mnl.weight, WeightMultivariateNormal)
+        assert mnl.weight.shape == (o, i)
+        assert hasattr(mnl, 'sample')
+        assert hasattr(mnl, 'sampled')
+        assert isinstance(mnl.sampled, tuple)
+        assert len(mnl.sampled) == 2
+
+        if b:
+            assert mnl.bias.shape == (o,)
+        else:
+            assert mnl.bias is None
+
+        init.constant_(mnl.weight.mean, 1)
+        # todo: use lower triangular matrix
+        init.constant_(mnl.weight.scale, -100)
+        if b:
+            init.constant_(mnl.bias.mean, 3)
+            # todo: use lower triangular matrix
+            init.constant_(mnl.bias.scale, -100)
+        mnl.sample()
+
+        x = ones_like(mnl.weight.mean)
+        result = mnl(x)
+
+        if b:
+            assert allclose(result, full_like(result, i + 3))
+        else:
+            assert allclose(result, full_like(result, i))
+
+
 def test_MCDropoutLinear(get_MCDropoutLinear):
     for example in get_MCDropoutLinear:
         i, o, b, p, s = example
         mcdl = MCDropoutLinear(i, o, b, p)
 
-        assert mcdl.prior is None
+        assert mcdl.weight_prior is None
+        assert mcdl.bias_prior is None
         assert mcdl.linear.weight.shape == (o, i)
 
         if b:

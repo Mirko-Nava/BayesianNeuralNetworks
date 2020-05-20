@@ -5,10 +5,11 @@ from ..utils import _item_or_list, traverse
 
 class BayesianModule(Module):
 
-    def __init__(self, in_channels, out_channels, prior):
+    def __init__(self, in_channels, out_channels, prior, bias_prior=None):
         super(BayesianModule, self).__init__()
 
-        self.prior = prior
+        self.weight_prior = prior
+        self.bias_prior = bias_prior if bias_prior else prior
         self.in_channels = in_channels
         self.out_channels = out_channels
 

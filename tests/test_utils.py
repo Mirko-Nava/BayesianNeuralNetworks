@@ -45,8 +45,8 @@ def test_triple(get_triple):
 
 def test_apply_wb(get_apply_wb):
     for example in get_apply_wb:
-        m, fn, pm, r = example
-        results = apply_wb(m, fn, pass_module=pm)
+        m, fn, pm, pt, r = example
+        results = apply_wb(m, fn, pass_module=pm, pass_type=pt)
 
         if r is None:
             assert results is None

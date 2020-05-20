@@ -2,7 +2,7 @@ import pytorch_bayesian.nn
 import pytorch_bayesian.prune
 import pytorch_bayesian.utils
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 __all__ = [
     'nn',

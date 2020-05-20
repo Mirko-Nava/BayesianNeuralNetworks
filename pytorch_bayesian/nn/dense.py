@@ -1,15 +1,16 @@
 import math
 import torch
 from torch.nn import init
-from .core import WeightNormal
 from .container import BayesianModule
+from torch.nn.parameter import Parameter
+from .core import WeightNormal, WeightMultivariateNormal
 
 
 class BayesianLinear(BayesianModule):
 
-    def __init__(self, in_features, out_features, bias, weight, prior):
+    def __init__(self, in_features, out_features, bias, weight, prior, bias_prior=None):
         super(BayesianLinear, self).__init__(
-            in_features, out_features, prior)
+            in_features, out_features, prior, bias_prior)
 
         self.weight = weight(out_features, in_features)
         if bias:
@@ -80,6 +81,59 @@ class FlipoutNormalLinear(NormalLinear):
         b_part = (x * self.S).matmul(self.weight.stddev.t()) * self.R
 
         return torch.nn.functional.linear(x, self.weight.mean, b_part)
+
+
+class MultivariateNormalLinear(BayesianLinear):
+
+    def __init__(self, in_features, out_features, bias=True, weight_prior=None, bias_prior=None):
+        if not weight_prior:
+            weight_prior = torch.distributions.multivariate_normal.MultivariateNormal(
+                torch.zeros(out_features, in_features),
+                torch.eye(in_features).repeat(out_features, 1, 1))
+
+        if bias and not bias_prior:
+            bias_prior = torch.distributions.multivariate_normal.MultivariateNormal(
+                torch.zeros(out_features),
+                torch.eye(out_features))
+
+        super(MultivariateNormalLinear, self).__init__(
+            in_features, out_features, bias, WeightMultivariateNormal, weight_prior, bias_prior)
+
+    def reset_parameters(self):
+        init.kaiming_uniform_(self.weight.mean, a=math.sqrt(5))
+        init.normal_(self.weight.scale, -1.0, 0.1)
+
+        # todo: use lower triangular matrix instead
+        with torch.no_grad():
+            self.weight.scale += self.weight.scale.permute(0, 2, 1)
+
+        if self.bias is not None:
+            fan_in, _ = init._calculate_fan_in_and_fan_out(self.weight.mean)
+            bound = 1 / math.sqrt(fan_in)
+            init.uniform_(self.bias.mean, -bound, bound)
+            init.normal_(self.bias.scale, -1.0, 0.1)
+
+            # todo: use lower triangular matrix instead
+            with torch.no_grad():
+                self.bias.scale += self.bias.scale.permute(1, 0)
+
+        self.sample()
+
+    def sample(self):
+        self.weight.sample()
+        self.sampled = (self.weight.sampled,)
+
+        if self.bias is not None:
+            self.bias.sample()
+            self.sampled += (self.bias.sampled,)
+        else:
+            self.sampled += (None,)
+
+    def forward(self, x, sample=True):
+        if sample:
+            self.sample()
+
+        return torch.nn.functional.linear(x, *self.sampled)
 
 
 class MCDropoutLinear(BayesianModule):

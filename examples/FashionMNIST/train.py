@@ -12,7 +12,7 @@ def main():
 
     # Hyperparameters
 
-    epochs = 5
+    epochs = 10
     batch_size = 1024
     learning_rate = 5e-4
     device = 'cuda' if torch.cuda.is_available() else 'cpu'

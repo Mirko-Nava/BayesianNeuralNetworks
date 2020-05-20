@@ -73,7 +73,8 @@ def test_NormalConv1d(get_NormalConv1d):
         i, o, k, s, pad, d, g, b, p = example
         nc1d = NormalConv1d(*example)
 
-        assert eq_dist(nc1d.prior, Normal(0, 1))
+        assert eq_dist(nc1d.weight_prior, Normal(0, 1))
+        assert eq_dist(nc1d.bias_prior, Normal(0, 1))
         init.constant_(nc1d.weight.mean, 1)
         init.constant_(nc1d.weight.scale, -100)
         if b:
@@ -98,7 +99,8 @@ def test_NormalConv2d(get_NormalConv2d):
         i, o, k, s, pad, d, g, b, p = example
         nc2d = NormalConv2d(*example)
 
-        assert eq_dist(nc2d.prior, Normal(0, 1))
+        assert eq_dist(nc2d.weight_prior, Normal(0, 1))
+        assert eq_dist(nc2d.bias_prior, Normal(0, 1))
         init.constant_(nc2d.weight.mean, 1)
         init.constant_(nc2d.weight.scale, -100)
         if b:
@@ -123,7 +125,8 @@ def test_NormalConv3d(get_NormalConv3d):
         i, o, k, s, pad, d, g, b, p = example
         nc3d = NormalConv3d(*example)
 
-        assert eq_dist(nc3d.prior, Normal(0, 1))
+        assert eq_dist(nc3d.weight_prior, Normal(0, 1))
+        assert eq_dist(nc3d.bias_prior, Normal(0, 1))
         init.constant_(nc3d.weight.mean, 1)
         init.constant_(nc3d.weight.scale, -100)
         if b:
@@ -160,7 +163,8 @@ def test_FlipOutNormalConv1d(get_FlipOutNormalConv1d):
         i, o, k, s, pad, d, g, p = example
         fonc1d = FlipOutNormalConv1d(*example)
 
-        assert eq_dist(fonc1d.prior, Normal(0, 1))
+        assert eq_dist(fonc1d.weight_prior, Normal(0, 1))
+        assert eq_dist(fonc1d.weight_prior, Normal(0, 1))
         init.constant_(fonc1d.weight.mean, 1)
         init.constant_(fonc1d.weight.scale, -100)
         fonc1d.sample()
@@ -178,7 +182,8 @@ def test_FlipOutNormalConv2d(get_FlipOutNormalConv2d):
         i, o, k, s, pad, d, g, p = example
         fonc2d = FlipOutNormalConv2d(*example)
 
-        assert eq_dist(fonc2d.prior, Normal(0, 1))
+        assert eq_dist(fonc2d.weight_prior, Normal(0, 1))
+        assert eq_dist(fonc2d.weight_prior, Normal(0, 1))
         init.constant_(fonc2d.weight.mean, 1)
         init.constant_(fonc2d.weight.scale, -100)
         fonc2d.sample()
@@ -196,7 +201,8 @@ def test_FlipOutNormalConv3d(get_FlipOutNormalConv3d):
         i, o, k, s, pad, d, g, p = example
         fonc3d = FlipOutNormalConv3d(*example)
 
-        assert eq_dist(fonc3d.prior, Normal(0, 1))
+        assert eq_dist(fonc3d.weight_prior, Normal(0, 1))
+        assert eq_dist(fonc3d.weight_prior, Normal(0, 1))
         init.constant_(fonc3d.weight.mean, 1)
         init.constant_(fonc3d.weight.scale, -100)
         fonc3d.sample()
@@ -214,7 +220,8 @@ def test_MCDropoutConvNd(get_MCDropoutConvNd):
         i, o, p = example
         mcdcnd = MCDropoutConvNd(*example)
 
-        assert mcdcnd.prior is None
+        assert mcdcnd.weight_prior is None
+        assert mcdcnd.bias_prior is None
         assert mcdcnd.in_channels == i
         assert mcdcnd.out_channels == o
 

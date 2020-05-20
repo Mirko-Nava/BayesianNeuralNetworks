@@ -3,8 +3,8 @@ import pytest
 from torch.nn import init
 from torch import zeros_like
 from pytorch_bayesian.nn import *
-from torch.distributions import Normal
 from torch.nn.parameter import Parameter
+from torch.distributions import Normal, MultivariateNormal
 
 
 def allclose(x, y, tol=1e-5):
@@ -35,4 +35,34 @@ def test_WeightNormal(get_WeightNormal):
         assert (wn.stddev > 0).all()
         assert (wn.stddev ** 2 == wn.variance).all()
         assert allclose(wn.sampled,
-                        zeros_like(wn.sampled))
+                        zeros_like(wn.sampled),
+                        tol=1e-5)
+
+
+def test_WeightMultivariateNormal(get_WeightMultivariateNormal):
+    for example in get_WeightMultivariateNormal:
+        wmn = WeightMultivariateNormal(*example)
+
+        assert isinstance(wmn.mean, Parameter)
+        assert isinstance(wmn.scale, Parameter)
+        assert wmn.mean.shape == example
+        assert wmn.scale.shape == (*example, example[-1])
+        assert wmn.shape == wmn.mean.shape
+        assert wmn.device == wmn.mean.device
+        assert wmn.requires_grad == wmn.mean.requires_grad
+        assert hasattr(wmn, 'sampled')
+        assert isinstance(wmn.sampled, torch.Tensor)
+        assert isinstance(wmn.dist, MultivariateNormal)
+        assert wmn.size() == example
+        assert wmn.size(0) == example[0]
+
+        init.constant_(wmn.mean, 0)
+        # todo: use lower triangular matrix
+        init.constant_(wmn.scale, -100)
+        wmn.sample()
+
+        assert (wmn.stddev > 0).all()
+        assert (wmn.stddev == wmn.variance.sqrt()).all()
+        assert allclose(wmn.sampled.mean(),
+                        torch.zeros(1),
+                        tol=1e-5)

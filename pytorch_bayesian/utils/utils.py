@@ -27,14 +27,17 @@ _triple = _ntuple(3)
 # Traversal
 
 
-def apply_wb(module, fn, *args, pass_module=False, **kwargs):
+def apply_wb(module, fn, *args, pass_module=False, pass_type=False, **kwargs):
     result = []
 
     if pass_module:
         kwargs['module'] = module
 
-    for param in [module.weight, module.bias]:
+    for t, param in zip('wb', [module.weight, module.bias]):
         if param is not None:
+            if pass_type:
+                kwargs['type'] = t
+
             res = fn(param, *args, **kwargs)
 
             if res is not None:

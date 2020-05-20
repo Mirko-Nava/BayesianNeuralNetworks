@@ -9,9 +9,9 @@ from ..utils import _single, _pair, _triple
 class BayesianConvNd(BayesianModule):
 
     def __init__(self, in_channels, out_channels, kernel_size, stride,
-                 padding, dilation, transposed, groups, bias, weight, prior):
+                 padding, dilation, transposed, groups, bias, weight, prior, bias_prior=None):
         super(BayesianConvNd, self).__init__(
-            in_channels, out_channels, prior)
+            in_channels, out_channels, prior, bias_prior)
         if in_channels % groups != 0:
             raise ValueError('in_channels must be divisible by groups')
         if out_channels % groups != 0:

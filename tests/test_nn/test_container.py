@@ -18,7 +18,8 @@ def test_BayesianModule():
 
     assert bm.in_channels == 3
     assert bm.out_channels == 5
-    assert eq_dist(bm.prior, Normal(0, 1))
+    assert eq_dist(bm.weight_prior, Normal(0, 1))
+    assert eq_dist(bm.bias_prior, Normal(0, 1))
 
 
 def test_BayesianNetworkModule():
