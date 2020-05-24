@@ -262,8 +262,8 @@ class MCDropoutConvNd(BayesianModule):
 
 class MCDropoutConv1d(MCDropoutConvNd):
 
-    def __init__(self, in_channels, out_channels, kernel_size, stride,
-                 padding, dilation, groups, bias, drop_prob):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1,
+                 padding=0, dilation=1, groups=1, bias=True, drop_prob=0.5):
         super(MCDropoutConv1d, self).__init__(
             in_channels, out_channels, drop_prob)
 
@@ -281,8 +281,8 @@ class MCDropoutConv1d(MCDropoutConvNd):
 
 class MCDropoutConv2d(MCDropoutConvNd):
 
-    def __init__(self, in_channels, out_channels, kernel_size, stride,
-                 padding, dilation, groups, bias, drop_prob):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1,
+                 padding=0, dilation=1, groups=1, bias=True, drop_prob=0.5):
         super(MCDropoutConv2d, self).__init__(
             in_channels, out_channels, drop_prob)
 
@@ -300,8 +300,8 @@ class MCDropoutConv2d(MCDropoutConvNd):
 
 class MCDropoutConv3d(MCDropoutConvNd):
 
-    def __init__(self, in_channels, out_channels, kernel_size, stride,
-                 padding, dilation, groups, bias, drop_prob):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1,
+                 padding=0, dilation=1, groups=1, bias=True, drop_prob=0.5):
         super(MCDropoutConv3d, self).__init__(
             in_channels, out_channels, drop_prob)
 
