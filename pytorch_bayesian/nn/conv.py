@@ -271,6 +271,9 @@ class MCDropoutConv1d(MCDropoutConvNd):
             in_channels, out_channels, kernel_size, stride,
             padding, dilation, groups, bias)
 
+        self.weight = self.conv.weight
+        self.bias = self.conv.bias
+
     def forward(self, x, sample=True):
         return torch.nn.functional.dropout(
             self.conv(x),
@@ -290,6 +293,9 @@ class MCDropoutConv2d(MCDropoutConvNd):
             in_channels, out_channels, kernel_size, stride,
             padding, dilation, groups, bias)
 
+        self.weight = self.conv.weight
+        self.bias = self.conv.bias
+
     def forward(self, x, sample=True):
         return torch.nn.functional.dropout(
             self.conv(x),
@@ -308,6 +314,9 @@ class MCDropoutConv3d(MCDropoutConvNd):
         self.conv = torch.nn.Conv3d(
             in_channels, out_channels, kernel_size, stride,
             padding, dilation, groups, bias)
+
+        self.weight = self.conv.weight
+        self.bias = self.conv.bias
 
     def forward(self, x, sample=True):
         return torch.nn.functional.dropout(
