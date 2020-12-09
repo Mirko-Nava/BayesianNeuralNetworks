@@ -42,7 +42,7 @@ def main():
         image, _ = test_dataset[index]
         image = image.to(device).unsqueeze(0)
         transformation = transforms.Compose([transforms.ToPILImage(),
-                                             transforms.ColorJitter(0, .1, .1, .2)])
+                                             transforms.ColorJitter(0, .1, .1, .3)])
         transformed = transformation(image[0])
         transformed = transforms.ToTensor()(transformed).unsqueeze(0)
 

@@ -1,6 +1,6 @@
 import torch
-from torch.nn import Linear, Conv2d, MaxPool2d, BatchNorm2d, ELU, Softmax
-from pytorch_bayesian.nn import BayesianNetworkModule, NormalConv2d, MultivariateNormalLinear, NormalLinear
+from torch.nn import Linear, Conv2d, BatchNorm2d, ELU, Softmax
+from pytorch_bayesian.nn import BayesianNetworkModule, NormalConv2d, MultivariateNormalLinear
 
 
 class Flatten(torch.nn.Module):
