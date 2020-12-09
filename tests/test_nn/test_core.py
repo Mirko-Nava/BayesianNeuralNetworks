@@ -57,11 +57,12 @@ def test_WeightMultivariateNormal(get_WeightMultivariateNormal):
         assert wmn.size(0) == example[0]
 
         init.constant_(wmn.mean, 0)
-        # todo: use lower triangular matrix
         init.constant_(wmn.scale, -100)
         wmn.sample()
 
-        assert (wmn.stddev > 0).all()
+        assert allclose(wmn.stddev, torch.tril(wmn.stddev))
+        assert ((wmn.stddev > 0) | torch.triu(
+            torch.ones_like(wmn.stddev), 1).to(torch.bool)).all()
         assert (wmn.stddev == wmn.variance.sqrt()).all()
         assert allclose(wmn.sampled.mean(),
                         torch.zeros(1),

@@ -101,21 +101,23 @@ class MultivariateNormalLinear(BayesianLinear):
 
     def reset_parameters(self):
         init.kaiming_uniform_(self.weight.mean, a=math.sqrt(5))
-        init.normal_(self.weight.scale, -1.0, 0.1)
+        init.normal_(self.weight.scale, -2.0, 0.15)
 
-        # todo: use lower triangular matrix instead
         with torch.no_grad():
-            self.weight.scale += self.weight.scale.permute(0, 2, 1)
+            triu = torch.triu(torch.ones_like(
+                self.weight.scale), 1).to(torch.bool)
+            self.weight.scale[triu] = -100
 
         if self.bias is not None:
             fan_in, _ = init._calculate_fan_in_and_fan_out(self.weight.mean)
             bound = 1 / math.sqrt(fan_in)
             init.uniform_(self.bias.mean, -bound, bound)
-            init.normal_(self.bias.scale, -1.0, 0.1)
+            init.normal_(self.bias.scale, -2.0, 0.15)
 
-            # todo: use lower triangular matrix instead
             with torch.no_grad():
-                self.bias.scale += self.bias.scale.permute(1, 0)
+                triu = torch.triu(torch.ones_like(
+                    self.bias.scale), 1).to(torch.bool)
+                self.bias.scale[triu] = -100
 
         self.sample()
 

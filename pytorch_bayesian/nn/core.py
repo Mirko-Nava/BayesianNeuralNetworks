@@ -71,8 +71,8 @@ class WeightMultivariateNormal(Module):
 
     @property
     def variance(self):
-        return torch.eye(self.size(-1), device=self.device) * 1e-10 + \
-            torch.nn.functional.softplus(self.scale)
+        tril = torch.tril(torch.nn.functional.softplus(self.scale))
+        return torch.eye(self.size(-1), device=self.device) * 1e-10 + tril
 
     @property
     def dist(self):

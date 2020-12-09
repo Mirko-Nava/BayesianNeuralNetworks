@@ -122,12 +122,15 @@ def test_MultivariateNormalLinear(get_MultivariateNormalLinear):
             assert mnl.bias is None
 
         init.constant_(mnl.weight.mean, 1)
-        # todo: use lower triangular matrix
         init.constant_(mnl.weight.scale, -100)
+        with torch.no_grad():
+            mnl.weight.scale *= torch.tril(torch.ones_like(mnl.weight.scale))
+
         if b:
             init.constant_(mnl.bias.mean, 3)
-            # todo: use lower triangular matrix
             init.constant_(mnl.bias.scale, -100)
+            with torch.no_grad():
+                mnl.bias.scale *= torch.tril(torch.ones_like(mnl.bias.scale))
         mnl.sample()
 
         x = ones_like(mnl.weight.mean)
