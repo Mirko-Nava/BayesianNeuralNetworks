@@ -167,15 +167,6 @@ def get_WeightMultivariateNormal():
 
 
 @pytest.fixture
-def get_WeightNormalInverseGamma():
-    return [
-        (1,),
-        (3, 4),
-        (5, 6)
-    ]
-
-
-@pytest.fixture
 def get_BayesianLinear():
     return [
         (1, 1, False, WeightNormal, Normal(0, 1)),
@@ -220,6 +211,18 @@ def get_FlipoutNormalLinear():
         (3, 4, Normal(0, 1)),
         (11, 7, Normal(0, 1)),
         (11, 7, Normal(0, 1))
+    ]
+
+
+@pytest.fixture
+def get_NormalInverseGammaLinear():
+    return [
+        (1, 1, False),
+        (1, 1, True),
+        (3, 4, False),
+        (3, 4, True),
+        (11, 7, False),
+        (11, 7, True)
     ]
 
 

@@ -2,6 +2,7 @@ import math
 import torch
 from torch.nn import init
 from .container import BayesianModule
+from torch.distributions import Normal
 from .core import WeightNormal, WeightMultivariateNormal
 
 
@@ -135,6 +136,30 @@ class MultivariateNormalLinear(BayesianLinear):
             self.sample()
 
         return torch.nn.functional.linear(x, *self.sampled)
+
+
+class NormalInverseGammaLinear(BayesianModule):
+
+    def __init__(self, in_features, out_features, bias=True):
+        super(NormalInverseGammaLinear, self).__init__(
+            in_features, out_features, None)
+
+        self.linear = torch.nn.Linear(in_features, 4 * out_features, bias)
+
+    def forward(self, x, sample=False):
+        gamma, upsilon, alpha, beta = torch.split(
+            self.linear(x), self.out_channels, dim=-1)
+
+        upsilon = 1e-10 + torch.nn.functional.softplus(upsilon)
+        alpha = 1 + 1e-10 + torch.nn.functional.softplus(alpha)
+        beta = 1e-10 + torch.nn.functional.softplus(beta)
+
+        if sample:
+            mean = gamma.clone()
+            stddev = torch.sqrt(beta / (upsilon * (alpha - 1)))
+            return Normal(mean, stddev)
+        else:
+            return (gamma, upsilon, alpha, beta)
 
 
 class MCDropoutLinear(BayesianModule):

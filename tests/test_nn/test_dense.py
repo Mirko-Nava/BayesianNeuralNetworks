@@ -17,7 +17,7 @@ def eq_dist(x, y):
         return False
     if x.batch_shape != y.batch_shape:
         return False
-    return (kl_divergence(x, y) == 0).all()
+    return (kl_divergence(x, y) < 1e-8).all()
 
 
 def test_BayesianLinear(get_BayesianLinear):
@@ -142,6 +142,57 @@ def test_MultivariateNormalLinear(get_MultivariateNormalLinear):
             assert allclose(result, full_like(result, i))
 
 
+def test_NormalInverseGammaLinear(get_NormalInverseGammaLinear):
+    for example in get_NormalInverseGammaLinear:
+        i, o, b = example
+        nigl = NormalInverseGammaLinear(*example)
+        assert nigl.weight_prior is None
+        assert nigl.bias_prior is None
+        assert nigl.linear.weight.shape == (4 * o, i)
+
+        if b:
+            assert nigl.linear.bias.shape == (4 * o,)
+        else:
+            assert nigl.linear.bias is None
+
+        init.constant_(nigl.linear.weight, 1)
+        if b:
+            init.constant_(nigl.linear.bias, 3)
+
+        assert hasattr(nigl, 'forward')
+        x = torch.ones(1, i)
+        dist = nigl(x, sample=True)
+        gamma, upsilon, alpha, beta = nigl(x)
+
+        assert gamma.shape == (1, o)
+        assert upsilon.shape == (1, o)
+        assert alpha.shape == (1, o)
+        assert beta.shape == (1, o)
+
+        if b:
+            mean = torch.tensor(i + 3, dtype=torch.float)
+        else:
+            mean = torch.tensor(i, dtype=torch.float)
+
+        other = torch.nn.functional.softplus(mean)
+
+        assert allclose(gamma.mean(),
+                        mean,
+                        tol=1e-5)
+        assert allclose(upsilon.mean(),
+                        other,
+                        tol=1e-5)
+        assert allclose(alpha.mean(),
+                        1 + other,
+                        tol=1e-5)
+        assert allclose(beta.mean(),
+                        other,
+                        tol=1e-5)
+
+        assert eq_dist(dist, Normal(mean.repeat(1, o),
+                                    torch.sqrt(1 / other).repeat(1, o)))
+
+
 def test_MCDropoutLinear(get_MCDropoutLinear):
     for example in get_MCDropoutLinear:
         i, o, b, p, s = example
@@ -160,6 +211,7 @@ def test_MCDropoutLinear(get_MCDropoutLinear):
         if b:
             init.constant_(mcdl.linear.bias, 3)
 
+        assert hasattr(mcdl, 'forward')
         x = ones_like(mcdl.linear.weight)
         result = mcdl(x, sample=s)
 
