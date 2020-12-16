@@ -40,6 +40,24 @@ def test_Entropy(get_Entropy):
 
         entropy = Entropy(dim)
 
-        result = entropy(x)
+        if (x == 0).all():
+            with pytest.warns(RuntimeWarning):
+                result = entropy(x)
+        else:
+            result = entropy(x)
+        assert isinstance(result, torch.Tensor)
+        assert result >= 0
+
+
+def test_NormalInverseGaussianLoss(get_NormalInverseGaussianLoss):
+    for example in get_NormalInverseGaussianLoss:
+        l = example[0]
+        g, v, a, b = (torch.tensor([[p]]) for p in example[1:])
+
+        loss_function = NormalInverseGaussianLoss(l)
+        y = zeros_like(g)
+
+        result = loss_function(y, g, v, a, b)
+        print(result)
         assert isinstance(result, torch.Tensor)
         assert result >= 0
