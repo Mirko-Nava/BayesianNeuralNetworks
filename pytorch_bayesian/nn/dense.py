@@ -2,7 +2,6 @@ import math
 import torch
 from torch.nn import init
 from .container import BayesianModule
-from torch.nn.parameter import Parameter
 from .core import WeightNormal, WeightMultivariateNormal
 
 

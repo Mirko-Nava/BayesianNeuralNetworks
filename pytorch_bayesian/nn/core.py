@@ -1,4 +1,3 @@
-import math
 import torch
 from torch.nn import Module
 from torch.nn.parameter import Parameter
@@ -91,3 +90,60 @@ class WeightMultivariateNormal(Module):
         self.sampled = self.mean + \
             torch.matmul(self.stddev, torch.rand_like(
                 self.mean).unsqueeze(-1)).squeeze(-1)
+
+
+class WeightNormalInverseGamma(Module):
+
+    def __init__(self, *channels):
+        super(WeightNormalInverseGamma, self).__init__()
+
+        self.gamma = Parameter(torch.Tensor(*channels))
+        self.log_upsilon = Parameter(torch.Tensor(*channels))
+        self.log_alpha = Parameter(torch.Tensor(*channels))
+        self.log_beta = Parameter(torch.Tensor(*channels))
+
+        self.sampled = WeightNormal(*channels)
+
+        self.sample()
+
+    @property
+    def device(self):
+        return self.gamma.device
+
+    @property
+    def requires_grad(self):
+        return self.gamma.requires_grad
+
+    @property
+    def upsilon(self):
+        return 1e-10 + torch.nn.functional.softplus(self.log_upsilon)
+
+    @property
+    def alpha(self):
+        return 1 + 1e-10 + torch.nn.functional.softplus(self.log_alpha)
+
+    @property
+    def beta(self):
+        return 1e-10 + torch.nn.functional.softplus(self.log_beta)
+
+    @property
+    def dist(self):
+        raise NotImplementedError(
+            'Normal-Inverse-Gamma distribution not implemented')
+
+    @property
+    def shape(self):
+        return self.size()
+
+    def size(self, *dims):
+        return self.gamma.size(*dims)
+
+    def sample(self):
+        stddev = torch.sqrt(self.beta / (self.upsilon * (self.alpha - 1)))
+        scale = stddev + torch.log(1 - torch.exp(-stddev))  # softplus inverse
+
+        with torch.no_grad():
+            self.sampled.mean.copy_(self.gamma.clone())
+            self.sampled.scale.copy_(scale.clone())
+
+        self.sampled.sample()

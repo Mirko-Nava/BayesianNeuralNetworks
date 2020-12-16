@@ -9,6 +9,7 @@ __all__ = [
     'BayesianNetworkModule',
     'WeightNormal',
     'WeightMultivariateNormal',
+    'WeightNormalInverseGamma',
     'BayesianLinear',
     'NormalLinear',
     'MultivariateNormalLinear',

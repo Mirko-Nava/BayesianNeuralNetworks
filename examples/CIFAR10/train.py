@@ -14,7 +14,7 @@ def main():
 
     epochs = 20
     batch_size = 256
-    learning_rate = 1e-4
+    learning_rate = 5e-4
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     # Dataset
