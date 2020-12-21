@@ -215,7 +215,7 @@ def get_FlipoutNormalLinear():
 
 
 @pytest.fixture
-def get_NormalInverseGammaLinear():
+def get_NormalInverseGaussianLinear():
     return [
         (1, 1, False),
         (1, 1, True),

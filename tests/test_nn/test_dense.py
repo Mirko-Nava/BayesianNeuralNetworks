@@ -142,10 +142,10 @@ def test_MultivariateNormalLinear(get_MultivariateNormalLinear):
             assert allclose(result, full_like(result, i))
 
 
-def test_NormalInverseGammaLinear(get_NormalInverseGammaLinear):
-    for example in get_NormalInverseGammaLinear:
+def test_NormalInverseGaussianLinear(get_NormalInverseGaussianLinear):
+    for example in get_NormalInverseGaussianLinear:
         i, o, b = example
-        nigl = NormalInverseGammaLinear(*example)
+        nigl = NormalInverseGaussianLinear(*example)
         assert nigl.weight_prior is None
         assert nigl.bias_prior is None
         assert nigl.linear.weight.shape == (4 * o, i)

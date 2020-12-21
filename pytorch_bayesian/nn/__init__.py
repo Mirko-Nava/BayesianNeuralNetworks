@@ -13,7 +13,7 @@ __all__ = [
     'NormalLinear',
     'MultivariateNormalLinear',
     'FlipoutNormalLinear',
-    'NormalInverseGammaLinear',
+    'NormalInverseGaussianLinear',
     'MCDropoutLinear',
     'BayesianConvNd',
     'NormalConvNd',
