@@ -138,10 +138,10 @@ class MultivariateNormalLinear(BayesianLinear):
         return torch.nn.functional.linear(x, *self.sampled)
 
 
-class NormalInverseGammaLinear(BayesianModule):
+class NormalInverseGaussianLinear(BayesianModule):
 
     def __init__(self, in_features, out_features, bias=True):
-        super(NormalInverseGammaLinear, self).__init__(
+        super(NormalInverseGaussianLinear, self).__init__(
             in_features, out_features, None)
 
         self.linear = torch.nn.Linear(in_features, 4 * out_features, bias)

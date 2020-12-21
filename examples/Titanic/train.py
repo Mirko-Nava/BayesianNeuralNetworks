@@ -1,10 +1,9 @@
 import torch
 from tqdm import tqdm
-from model import BCNN
+from model import BNN
 from statistics import mean
 from dataset import Titanic
 from torchsummary import summary
-from torchvision.datasets import MNIST
 from pytorch_bayesian.nn import Entropy
 
 
@@ -30,7 +29,7 @@ def main():
 
     # Model
 
-    model = BCNN(9, 2).to(device)
+    model = BNN(9, 2).to(device)
     summary(model, (9,), device=device)
 
     # Loss, Metrics and Optimizer

@@ -30,5 +30,6 @@ __all__ = [
     'MCDropoutConv3d',
     'KLDivergence',
     'Entropy',
-    'NormalInverseGaussianLoss'
+    'NormalInverseGaussianLoss',
+    'NormalInverseGaussianUncertainty'
 ]

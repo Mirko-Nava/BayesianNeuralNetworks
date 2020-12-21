@@ -2,7 +2,6 @@ import torch
 from PIL import Image
 from model import BCNN
 import matplotlib.pyplot as plt
-from torchsummary import summary
 from torchvision import transforms
 from pytorch_bayesian.nn import Entropy
 from torchvision.datasets import FashionMNIST

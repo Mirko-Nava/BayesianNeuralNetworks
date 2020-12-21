@@ -1,5 +1,4 @@
 import torch
-from PIL import Image
 from model import BCNN
 import matplotlib.pyplot as plt
 from torchsummary import summary

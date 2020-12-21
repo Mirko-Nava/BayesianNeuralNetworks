@@ -3,10 +3,10 @@ from torch.nn import ELU, Softmax
 from pytorch_bayesian.nn import BayesianNetworkModule, MCDropoutLinear
 
 
-class BCNN(BayesianNetworkModule):
+class BNN(BayesianNetworkModule):
 
     def __init__(self, in_features, out_features, samples=100):
-        super(BCNN, self).__init__(in_features, out_features, samples)
+        super(BNN, self).__init__(in_features, out_features, samples)
 
         self.layers = torch.nn.Sequential(
             MCDropoutLinear(in_features, 256, drop_prob=.2),

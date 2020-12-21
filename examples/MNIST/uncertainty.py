@@ -2,7 +2,6 @@ import torch
 from PIL import Image
 from model import BCNN
 import matplotlib.pyplot as plt
-from torchsummary import summary
 from torchvision import transforms
 from torchvision.datasets import MNIST
 from pytorch_bayesian.nn import Entropy

@@ -63,7 +63,17 @@ class NormalInverseGaussianLoss(Module):
             + (alpha + 0.5) * torch.log(upsilon * (y - gamma) ** 2 + omega)  \
             + torch.lgamma(alpha) - torch.lgamma(alpha + 0.5)
 
-    def forward(self, y, gamma, upsilon, alpha, beta):
+    def forward(self, gamma, upsilon, alpha, beta, y):
         regularizer = torch.mean(torch.abs(y - gamma) * (2 * upsilon + alpha))
         nll = self.nll(y, gamma, upsilon, alpha, beta).mean()
         return nll + self.reg_lambda * regularizer
+
+
+class NormalInverseGaussianUncertainty(Module):
+    def __init__(self):
+        super(NormalInverseGaussianUncertainty, self).__init__()
+
+    def forward(self, upsilon, alpha, beta):
+        aleatoric = beta / (alpha - 1)
+        epistemic = aleatoric / upsilon
+        return (aleatoric, epistemic)
