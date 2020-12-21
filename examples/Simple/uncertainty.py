@@ -35,32 +35,47 @@ def main():
     # Uncertainty measurements
 
     Xs = []
+    Mean = []
     Aleatoric = []
     Epistemic = []
     with torch.no_grad():
         for x, y in test_loader:
             x, y = x.to(device), y.to(device)
 
-            _, upsilon, alpha, beta = model(x)
+            gamma, upsilon, alpha, beta = model(x)
 
             aleatoric, epistemic = uncertainty_function(upsilon, alpha, beta)
 
             Xs.append(x.cpu().numpy())
+            Mean.append(gamma.cpu().numpy())
             Aleatoric.append(aleatoric.cpu().numpy())
             Epistemic.append(epistemic.cpu().numpy())
 
     Xs = np.concatenate(Xs)
+    Mean = np.concatenate(Mean)
     Aleatoric = np.concatenate(Aleatoric)
     Epistemic = np.concatenate(Epistemic)
 
     ax1 = plt.subplot(1, 2, 1)
     plt.title('Aleatoric')
-    plt.scatter(Xs, Aleatoric, s=.2, alpha=.3, c='b')
-    ax1.set_yscale('log')
+    for k in np.linspace(0, 3, 4):
+        plt.fill_between(Xs[:, 0],
+                         (Mean - k * np.sqrt(Aleatoric))[:, 0],
+                         (Mean + k * np.sqrt(Aleatoric))[:, 0],
+                         alpha=.25, facecolor='orange')
+    plt.scatter(Xs, Mean, s=.2, alpha=.05, c='b')
 
-    plt.subplot(1, 2, 2, sharey=ax1)
+    ax2 = plt.subplot(1, 2, 2, sharey=ax1)
     plt.title('Epistemic')
-    plt.scatter(Xs, Epistemic, s=.2, alpha=.3, c='orange')
+    for k in np.linspace(0, 3, 4):
+        plt.fill_between(Xs[:, 0],
+                         (Mean - k * np.sqrt(Epistemic))[:, 0],
+                         (Mean + k * np.sqrt(Epistemic))[:, 0],
+                         alpha=.25, facecolor='orange')
+    plt.scatter(Xs, Mean, s=.2, alpha=.05, c='b')
+
+    ax1.set_aspect(1 / ax1.get_data_ratio())
+    ax2.set_aspect(1 / ax2.get_data_ratio())
 
     plt.show()
 
