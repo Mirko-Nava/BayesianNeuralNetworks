@@ -58,6 +58,22 @@ def test_NormalInverseGaussianLoss(get_NormalInverseGaussianLoss):
         y = zeros_like(g)
 
         result = loss_function(y, g, v, a, b)
-        print(result)
+
         assert isinstance(result, torch.Tensor)
         assert result >= 0
+
+
+def test_NormalInverseGaussianUncertainty(get_NormalInverseGaussianUncertainty):
+    for example in get_NormalInverseGaussianUncertainty:
+        v, a, b = (torch.tensor([[p]]) for p in example)
+
+        function = NormalInverseGaussianUncertainty()
+
+        aleatoric, epistemic = function(v, a, b)
+
+        assert isinstance(aleatoric, torch.Tensor)
+        assert isinstance(epistemic, torch.Tensor)
+        assert aleatoric >= 0
+        assert epistemic >= 0
+        assert aleatoric == b / (a - 1)
+        assert epistemic == b / (v * (a - 1))
