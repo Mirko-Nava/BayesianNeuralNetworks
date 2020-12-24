@@ -48,7 +48,6 @@ def apply_wb(module, fn, *args, pass_module=False, pass_type=False, **kwargs):
 
 
 def traverse(module, fn, *args, **kwargs):
-
     if isinstance(module, (ModuleList, ModuleDict, Sequential,
                            pytorch_bayesian.nn.BayesianNetworkModule)):
         result = []
