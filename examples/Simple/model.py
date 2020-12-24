@@ -1,6 +1,6 @@
 import torch
 from torch.nn import Linear, ReLU
-from pytorch_bayesian.nn import BayesianNetworkModule, NormalInverseGammaLinear
+from pytorch_bayesian.nn import BayesianNetworkModule, NormalInverseGaussianLinear
 
 
 class BNN(BayesianNetworkModule):
@@ -15,7 +15,7 @@ class BNN(BayesianNetworkModule):
             ReLU(),
             Linear(100, 100),
             ReLU(),
-            NormalInverseGammaLinear(100, out_channels),
+            NormalInverseGaussianLinear(100, out_channels),
         )
 
     def _forward(self, x):
